@@ -50,7 +50,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
       const apiKey = process.env.OPENROUTER_API_KEY;
       
       if (!apiKey) {
-        return { response: "API Key is missing in environment variables." };
+        throw new Error("API Key is missing in environment variables.");
       }
 
       const preferredLanguage = input.language || 'English';
@@ -74,16 +74,17 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
       });
 
       if (!response.ok) {
-        throw new Error(`OpenRouter API error: ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
       }
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || 'I could not generate a response.';
 
       return { response: content.trim() };
-    } catch (err) {
+    } catch (err: any) {
       console.error('Chatbot Integration Error:', err);
-      return { response: 'Sorry, I am having trouble connecting to the chat service. Please check your internet or API key.' };
+      return { response: `Error: ${err.message || 'Connecting to AI service failed.'}` };
     }
   }
 );

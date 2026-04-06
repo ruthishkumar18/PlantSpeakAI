@@ -1,4 +1,3 @@
-
 import { Droplets, Sun, Snowflake, Activity, Bug, Heart, AlertTriangle } from 'lucide-react';
 
 export const STRESS_LABELS: Record<number, { label: string; emoji: string; icon: any; color: string; advice: string }> = {

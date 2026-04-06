@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { chatbotInteractionAndLanguageSupport } from '@/ai/flows/chatbot-interaction-and-language-support-flow';
+import { VoiceInput } from '@/components/VoiceInput';
 import { cn } from '@/lib/utils';
 
 export function ChatbotFloating() {
@@ -59,6 +60,12 @@ export function ChatbotFloating() {
     { label: "ESP32", icon: Smartphone },
     { label: "ThingSpeak", icon: Leaf },
   ];
+
+  const getRecognitionLang = () => {
+    if (activeLang === 'தமிழ்') return 'ta-IN';
+    if (activeLang === 'हिंदी') return 'hi-IN';
+    return 'en-US';
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
@@ -140,6 +147,7 @@ export function ChatbotFloating() {
             </div>
             
             <div className="flex gap-2 w-full">
+              <VoiceInput onTranscript={handleSend} language={getRecognitionLang()} />
               <div className="flex-1 relative">
                 <Input 
                   placeholder="Type here..." 
