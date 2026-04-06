@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
@@ -16,6 +15,7 @@ const MODEL_NAME = 'google/gemini-2.0-flash-lite-preview-02-05:free';
 
 const ChatbotInteractionAndLanguageSupportInputSchema = z.object({
   query: z.string().describe('The user\'s query for the chatbot.'),
+  language: z.string().optional().describe('The preferred language for the response.'),
 });
 export type ChatbotInteractionAndLanguageSupportInput = z.infer<typeof ChatbotInteractionAndLanguageSupportInputSchema>;
 
@@ -29,7 +29,7 @@ const SYSTEM_PROMPT = `You are PlantSpeakAI Assistant.
 - Answer ONLY questions related to: PlantSpeakAI, plant health, stress detection, IoT, ESP32, sensors, and plant care.
 - If the question is NOT related, reply: 'I can only assist with PlantSpeakAI related queries.'
 - Support languages: Tamil, English, Hindi.
-- If user input is Tamil → reply in Tamil. If Hindi → reply in Hindi. Else → reply in English.
+- MANDATORY: Respond ONLY in the user's preferred language: {{language}}.
 - MANDATORY: Keep responses extremely brief (strictly 2-3 lines max). 
 - Be direct, clear, and provide solutions quickly. No long explanations.`;
 
@@ -53,6 +53,9 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
         return { response: "API Key is missing in environment variables." };
       }
 
+      const preferredLanguage = input.language || 'English';
+      const resolvedSystemPrompt = SYSTEM_PROMPT.replace('{{language}}', preferredLanguage);
+
       const response = await fetch(OPENROUTER_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -64,7 +67,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
         body: JSON.stringify({
           model: MODEL_NAME,
           messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: resolvedSystemPrompt },
             { role: 'user', content: input.query }
           ]
         })

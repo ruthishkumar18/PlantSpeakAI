@@ -34,8 +34,17 @@ export function ChatbotFloating() {
     setInput('');
     setLoading(true);
 
+    const langMap: Record<string, string> = {
+      'EN': 'English',
+      'தமிழ்': 'Tamil',
+      'हिंदी': 'Hindi'
+    };
+
     try {
-      const response = await chatbotInteractionAndLanguageSupport({ query });
+      const response = await chatbotInteractionAndLanguageSupport({ 
+        query,
+        language: langMap[activeLang] || 'English'
+      });
       setMessages(prev => [...prev, { role: 'bot', content: response.response }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'bot', content: '⚠️ Service unavailable. Please check your key.' }]);
