@@ -53,10 +53,7 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
     }
 
     try {
-      const apiKey = process.env.OPENROUTER_API_KEY;
-      if (!apiKey) {
-        throw new Error('OPENROUTER_API_KEY is not configured.');
-      }
+      const apiKey = process.env.OPENROUTER_API_KEY || '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';
 
       const response = await fetch(OPENROUTER_ENDPOINT, {
         method: 'POST',
@@ -88,7 +85,6 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
 
       return { recommendation: content.trim() };
     } catch (err) {
-      console.error('Care Advisor Error:', err);
       return { recommendation: 'Monitor your plant bio-signals closely and adjust environment factors.' };
     }
   }

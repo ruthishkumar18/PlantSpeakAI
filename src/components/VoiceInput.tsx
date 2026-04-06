@@ -35,7 +35,10 @@ export function VoiceInput({ onTranscript, language = 'en-US' }: VoiceInputProps
     };
 
     recognition.onerror = (event: any) => {
-      console.error("Speech recognition error", event.error);
+      // Handle 'aborted' error silently as it often happens when stopping/starting quickly
+      if (event.error !== 'aborted') {
+        console.warn("Speech recognition error", event.error);
+      }
       setIsListening(false);
     };
 

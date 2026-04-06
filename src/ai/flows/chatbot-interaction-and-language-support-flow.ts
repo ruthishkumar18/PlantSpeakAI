@@ -62,12 +62,8 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const apiKey = process.env.OPENROUTER_API_KEY;
+      const apiKey = process.env.OPENROUTER_API_KEY || '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';
       
-      if (!apiKey) {
-        throw new Error("API Key is missing in environment variables.");
-      }
-
       const preferredLanguage = input.language || 'English';
       const resolvedSystemPrompt = SYSTEM_PROMPT.replace('{{language}}', preferredLanguage);
 
@@ -98,7 +94,6 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
 
       return { response: content.trim() };
     } catch (err: any) {
-      console.error('Chatbot Integration Error:', err);
       return { response: `Error: ${err.message || 'Connecting to AI service failed.'}` };
     }
   }
