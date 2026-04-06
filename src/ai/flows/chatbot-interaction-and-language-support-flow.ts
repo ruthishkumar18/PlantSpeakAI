@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI.
- * Enforces strict 2-3 line responses and uses the openai/gpt-oss-20b:free model.
+ * Enforces strict 2-3 line responses and uses the openai/gpt-oss-20b:free model with reasoning.
  */
 
 import {ai} from '@/ai/genkit';
@@ -80,7 +80,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
             { role: 'system', content: resolvedSystemPrompt },
             { role: 'user', content: input.query }
           ],
-          max_tokens: 150,
+          max_tokens: 250,
           temperature: 0.7,
           reasoning: { enabled: true }
         })
