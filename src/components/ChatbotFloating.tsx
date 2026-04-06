@@ -1,7 +1,8 @@
+
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, Bot, Droplet, Leaf, Activity, Smartphone } from 'lucide-react';
+import { X, Send, Bot, Droplet, Leaf, Activity, Smartphone, Heart, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -59,6 +60,8 @@ export function ChatbotFloating() {
     { label: "Watering", icon: Droplet },
     { label: "ESP32", icon: Smartphone },
     { label: "ThingSpeak", icon: Leaf },
+    { label: "Plant Care", icon: Heart },
+    { label: "Sensor Tips", icon: Zap },
   ];
 
   const getRecognitionLang = () => {
