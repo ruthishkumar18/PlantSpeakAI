@@ -1,14 +1,14 @@
 'use server';
 /**
  * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI.
- * Enforces strict 2-3 line responses and uses the updated OpenRouter API key.
+ * Enforces strict 2-3 line responses and uses the openai/gpt-oss-20b:free model.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL_NAME = 'meta-llama/llama-3.2-3b-instruct:free';
+const MODEL_NAME = 'openai/gpt-oss-20b:free';
 const API_KEY = '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';
 
 const ChatbotInteractionAndLanguageSupportInputSchema = z.object({
