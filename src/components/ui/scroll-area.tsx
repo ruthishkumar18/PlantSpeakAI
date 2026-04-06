@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -10,22 +11,26 @@ const ScrollArea = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & {
     viewportRef?: React.Ref<HTMLDivElement>
   }
->(({ className, children, viewportRef, ...props }, ref) => (
-  <ScrollAreaPrimitive.Root
-    ref={ref}
-    className={cn("relative overflow-hidden", className)}
-    {...props}
-  >
-    <ScrollAreaPrimitive.Viewport 
-      ref={viewportRef}
-      className="h-full w-full rounded-[inherit]"
+>(({ className, children, viewportRef, ...props }, ref) => {
+  // We explicitly separate viewportRef from the other props to ensure it's not
+  // passed to the ScrollAreaPrimitive.Root component, which would cause a React warning.
+  return (
+    <ScrollAreaPrimitive.Root
+      ref={ref}
+      className={cn("relative overflow-hidden", className)}
+      {...props}
     >
-      {children}
-    </ScrollAreaPrimitive.Viewport>
-    <ScrollBar />
-    <ScrollAreaPrimitive.Corner />
-  </ScrollAreaPrimitive.Root>
-))
+      <ScrollAreaPrimitive.Viewport 
+        ref={viewportRef}
+        className="h-full w-full rounded-[inherit]"
+      >
+        {children}
+      </ScrollAreaPrimitive.Viewport>
+      <ScrollBar />
+      <ScrollAreaPrimitive.Corner />
+    </ScrollAreaPrimitive.Root>
+  )
+})
 ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
 
 const ScrollBar = React.forwardRef<

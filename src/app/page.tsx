@@ -1,7 +1,8 @@
+
 "use client"
 
 import React from 'react';
-import { useThingSpeak, PlantData } from '@/hooks/useThingSpeak';
+import { useThingSpeak } from '@/hooks/useThingSpeak';
 import { StressStatusCard } from '@/components/StressStatusCard';
 import { ChatbotFloating } from '@/components/ChatbotFloating';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -30,7 +31,7 @@ import {
 } from 'recharts';
 
 export default function Home() {
-  const { data, history, loading, error } = useThingSpeak();
+  const { data, history, loading } = useThingSpeak();
 
   const metrics = [
     { label: 'Raw Value', value: data?.field1, icon: Activity, color: 'text-emerald-500', unit: 'bits' },
@@ -157,27 +158,28 @@ export default function Home() {
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" opacity={0.5} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.1} />
                       <XAxis 
                         dataKey="time" 
                         fontSize={10} 
                         tickLine={false} 
                         axisLine={false}
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                        tick={{ fill: 'currentColor', opacity: 0.5 }}
                       />
                       <YAxis 
                         fontSize={10} 
                         tickLine={false} 
                         axisLine={false}
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                        tick={{ fill: 'currentColor', opacity: 0.5 }}
+                        domain={['auto', 'auto']}
                       />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'hsl(var(--background))', 
+                          backgroundColor: 'hsl(var(--card))', 
                           borderColor: 'hsl(var(--border))',
                           borderRadius: 'var(--radius)',
                           fontSize: '12px',
-                          color: 'hsl(var(--foreground))'
+                          color: 'hsl(var(--card-foreground))'
                         }}
                       />
                       <Line 
@@ -188,6 +190,7 @@ export default function Home() {
                         dot={{ r: 4, fill: 'hsl(var(--primary))' }}
                         activeDot={{ r: 6 }}
                         animationDuration={1000}
+                        isAnimationActive={true}
                       />
                       <Line 
                         type="monotone" 
@@ -197,6 +200,7 @@ export default function Home() {
                         strokeDasharray="5 5"
                         dot={false}
                         animationDuration={1000}
+                        isAnimationActive={true}
                       />
                     </LineChart>
                   </ResponsiveContainer>

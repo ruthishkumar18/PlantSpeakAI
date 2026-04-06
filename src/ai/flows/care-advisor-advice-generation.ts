@@ -1,28 +1,30 @@
+
 'use server';
 /**
  * @fileOverview A Genkit flow for generating actionable care advice based on detected plant stress.
+ * Uses OpenRouter for advice generation to avoid Gemini dependency.
  *
  * - careAdvisorAdviceGeneration - A function that generates plant care advice.
  * - CareAdvisorAdviceGenerationInput - The input type for the careAdvisorAdviceGeneration function.
  * - CareAdvisorAdviceGenerationOutput - The return type for the careAdvisorAdviceGeneration function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
-// Input schema for the wrapper function and flow
+const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+const MODEL_NAME = 'qwen/qwen3.6-plus:free';
+
 const CareAdvisorAdviceGenerationInputSchema = z.object({
   stressLabel: z.number().int().min(0).max(6).describe('The numeric label indicating the type of plant stress.'),
 });
 export type CareAdvisorAdviceGenerationInput = z.infer<typeof CareAdvisorAdviceGenerationInputSchema>;
 
-// Output schema for the flow and wrapper function
 const CareAdvisorAdviceGenerationOutputSchema = z.object({
   recommendation: z.string().describe('An actionable recommendation or solution for the detected plant stress.'),
 });
 export type CareAdvisorAdviceGenerationOutput = z.infer<typeof CareAdvisorAdviceGenerationOutputSchema>;
 
-// Helper function to map stress label to a descriptive string for the LLM
 function getStressTypeDescription(stressLabel: number): string {
   switch (stressLabel) {
     case 0: return 'Healthy';
@@ -32,36 +34,16 @@ function getStressTypeDescription(stressLabel: number): string {
     case 4: return 'Cold Stress';
     case 5: return 'Mechanical Stress';
     case 6: return 'Pest Attack';
-    default: return 'Unknown Stress'; // Should not happen with min/max validation
+    default: return 'Unknown Stress';
   }
 }
 
-// Define the prompt for the AI Care Advisor
-const careAdvisorAdvicePrompt = ai.definePrompt({
-  name: 'careAdvisorAdvicePrompt',
-  input: {
-    schema: z.object({
-      stressType: z.string().describe('A descriptive string of the plant stress type.'),
-    }),
-  },
-  output: {
-    schema: CareAdvisorAdviceGenerationOutputSchema,
-  },
-  prompt: `You are a helpful and knowledgeable plant care advisor. Your task is to provide a concise, actionable, and practical recommendation or solution to a plant owner based on the detected plant stress type. The output should be a JSON object with a single field, "recommendation".
+export async function careAdvisorAdviceGeneration(
+  input: CareAdvisorAdviceGenerationInput
+): Promise<CareAdvisorAdviceGenerationOutput> {
+  return careAdvisorAdviceGenerationFlow(input);
+}
 
-Stress Type: {{{stressType}}}
-
-Here are some examples of desired output format and content:
-If "Water Stress": {"recommendation": "Check soil moisture immediately. If dry, water thoroughly until it drains from the bottom. Ensure good drainage to prevent waterlogging."}
-If "Over Water": {"recommendation": "Allow the soil to dry out completely before watering again. Improve drainage and consider repotting if soil is consistently soggy."}
-If "Heat Stress": {"recommendation": "Move the plant to a cooler, shadier location. Increase humidity around the plant if possible. Avoid direct afternoon sun."}
-If "Cold Stress": {"recommendation": "Relocate the plant to a warmer environment. Protect from cold drafts and ensure temperatures stay above its minimum tolerance."}
-If "Pest Attack": {"recommendation": "Isolate the plant. Identify the specific pest and apply an appropriate organic pesticide, neem oil, or insecticidal soap. Repeat treatment as necessary."}
-If "Mechanical Stress": {"recommendation": "Gently prune damaged parts. Provide support for broken stems. Avoid further physical damage and ensure stable conditions."}
-`,
-});
-
-// Define the Genkit flow for generating care advice
 const careAdvisorAdviceGenerationFlow = ai.defineFlow(
   {
     name: 'careAdvisorAdviceGenerationFlow',
@@ -71,25 +53,48 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
   async (input) => {
     const stressTypeDescription = getStressTypeDescription(input.stressLabel);
 
-    // Handle 'Healthy' status without calling the LLM for efficiency
     if (input.stressLabel === 0) {
       return { recommendation: 'Your plant is healthy. Keep up the good care!' };
     }
 
-    // Call the prompt to generate advice for other stress types
-    const { output } = await careAdvisorAdvicePrompt({ stressType: stressTypeDescription });
+    try {
+      const apiKey = process.env.OPENROUTER_API_KEY;
+      if (!apiKey) {
+        throw new Error('OPENROUTER_API_KEY is not configured.');
+      }
 
-    if (!output) {
-      throw new Error('The AI model failed to generate a recommendation.');
+      const response = await fetch(OPENROUTER_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://plantspeakai.firebaseapp.com',
+          'X-Title': 'PlantSpeakAI',
+        },
+        body: JSON.stringify({
+          model: MODEL_NAME,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert botanist. Provide a concise, actionable 1-sentence recommendation for the given plant stress. Return ONLY the recommendation text.'
+            },
+            {
+              role: 'user',
+              content: `Plant Stress detected: ${stressTypeDescription}`
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) throw new Error('OpenRouter advice generation failed.');
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || 'Please check the standard care instructions.';
+
+      return { recommendation: content.trim() };
+    } catch (err) {
+      console.error('Care Advisor Error:', err);
+      return { recommendation: 'Monitor your plant and adjust conditions as needed.' };
     }
-
-    return output;
   }
 );
-
-// Exported wrapper function for the flow
-export async function careAdvisorAdviceGeneration(
-  input: CareAdvisorAdviceGenerationInput
-): Promise<CareAdvisorAdviceGenerationOutput> {
-  return careAdvisorAdviceGenerationFlow(input);
-}
