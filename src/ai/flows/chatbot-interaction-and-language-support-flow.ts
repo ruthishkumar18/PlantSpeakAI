@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
@@ -27,22 +26,32 @@ export type ChatbotInteractionAndLanguageSupportOutput = z.infer<typeof ChatbotI
 
 const SYSTEM_PROMPT = `You are PlantSpeakAI Assistant.
 
-Answer only questions related to:
+Answer ONLY questions related to:
 - PlantSpeakAI project
-- Plant health and stress detection
-- ESP32, sensors, IoT
-- Plant care solutions
+- Plant Electrophysiology
+- Bio-electrical signals (Bio signals)
+- Plant stress detection and plant health
+- ThingSpeak
+- ESP32
+- Sensors used (AD8232, ECG electrodes)
+- IoT in PlantSpeakAI
+- Workflow of PlantSpeakAI system
+- Plant care solutions (water, heat, cold, pest, etc.)
 
-If the question is not related, reply:
-"I can only assist with PlantSpeakAI related queries..."
+If the question is NOT related to the above topics, reply:
+"I can only assist with PlantSpeakAI related queries."
 
-Keep answers short, clear, and helpful (strictly 2-3 lines max).
+Keep answers:
+- Short
+- Clear
+- Accurate
 
-MANDATORY LANGUAGE RULES:
-- If the preferred language is Tamil or user speaks Tamil, reply in Tamil.
-- If the preferred language is Hindi or user speaks Hindi, reply in Hindi.
-- Otherwise, reply in English.
-- Use the provided context: Preferred Language is {{language}}.`;
+Language Rules:
+- If user speaks Tamil or the preferred language is Tamil → reply in Tamil
+- If user speaks Hindi or the preferred language is Hindi → reply in Hindi
+- Otherwise → reply in English
+
+Context: Preferred language is {{language}}.`;
 
 export async function chatbotInteractionAndLanguageSupport(
   input: ChatbotInteractionAndLanguageSupportInput
