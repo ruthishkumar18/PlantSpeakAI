@@ -72,7 +72,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
           'Authorization': `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://github.com/ruthishkumar18/PlantSpeakAI',
-          'X-OpenRouter-Title': 'PlantSpeakAI',
+          'X-OpenRouter-Title': 'PlantSpeakAI Assistant',
         },
         body: JSON.stringify({
           model: MODEL_NAME,
@@ -86,18 +86,17 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
         })
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+        throw new Error(data.error?.message || `API error: ${response.status}`);
       }
 
-      const data = await response.json();
       const content = data.choices?.[0]?.message?.content || 'I could not generate a response.';
-
       return { response: content.trim() };
     } catch (err: any) {
       console.error('Chat Flow Error:', err);
-      return { response: `Error: ${err.message || 'Connecting to AI service failed.'}` };
+      return { response: `Service error. Please try again later.` };
     }
   }
 );

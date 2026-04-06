@@ -80,14 +80,13 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
         })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+        throw new Error(data.error?.message || `API error: ${response.status}`);
       }
 
-      const data = await response.json();
       const content = data.choices?.[0]?.message?.content || 'Check your plant conditions and adjust watering or environment.';
-
       return { recommendation: content.trim() };
     } catch (err: any) {
       console.error('Advisor Flow Error:', err);
