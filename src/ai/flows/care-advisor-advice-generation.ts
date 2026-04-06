@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating actionable care advice based on detected plant stress.
- * Enforces strict 2-3 line responses for quick reading.
+ * Enforces strict 2-3 line responses and uses the updated OpenRouter API key.
  */
 
 import { ai } from '@/ai/genkit';
@@ -9,6 +9,7 @@ import { z } from 'genkit';
 
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL_NAME = 'meta-llama/llama-3.2-3b-instruct:free';
+const API_KEY = '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';
 
 const CareAdvisorAdviceGenerationInputSchema = z.object({
   stressLabel: z.number().int().min(0).max(6).describe('The numeric label indicating the type of plant stress.'),
@@ -53,12 +54,10 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
     }
 
     try {
-      const apiKey = process.env.OPENROUTER_API_KEY || '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';
-
       const response = await fetch(OPENROUTER_ENDPOINT, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://plantspeakai.firebaseapp.com',
           'X-OpenRouter-Title': 'PlantSpeakAI Advisor',
@@ -80,14 +79,18 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
         })
       });
 
-      if (!response.ok) throw new Error('OpenRouter advice generation failed.');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+      }
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || 'Check your plant conditions and adjust watering or environment.';
 
       return { recommendation: content.trim() };
-    } catch (err) {
-      return { recommendation: 'Monitor your plant bio-signals closely and adjust environment factors.' };
+    } catch (err: any) {
+      console.error('Advisor Flow Error:', err);
+      return { recommendation: 'Monitor your plant bio-signals closely and adjust environmental factors.' };
     }
   }
 );
