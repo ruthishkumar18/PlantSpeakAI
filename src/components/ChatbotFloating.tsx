@@ -1,23 +1,14 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Bot, User, Globe } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { chatbotInteractionAndLanguageSupport } from '@/ai/flows/chatbot-interaction-and-language-support-flow';
 import { VoiceInput } from './VoiceInput';
 import { cn } from '@/lib/utils';
-
-type Language = 'English' | 'Tamil' | 'Hindi';
-
-const LANG_CODES: Record<Language, string> = {
-  English: 'en-US',
-  Tamil: 'ta-IN',
-  Hindi: 'hi-IN',
-};
 
 export function ChatbotFloating() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +16,6 @@ export function ChatbotFloating() {
     { role: 'bot', content: 'Hello! I am your PlantSpeakAI assistant. How can I help you today?' },
   ]);
   const [input, setInput] = useState('');
-  const [language, setLanguage] = useState<Language>('English');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +37,6 @@ export function ChatbotFloating() {
     try {
       const response = await chatbotInteractionAndLanguageSupport({
         query,
-        language,
       });
       setMessages(prev => [...prev, { role: 'bot', content: response.response }]);
     } catch (err) {
@@ -66,25 +55,12 @@ export function ChatbotFloating() {
               <Bot className="h-6 w-6" />
               <div>
                 <h3 className="font-bold text-sm">PlantSpeak AI Chat</h3>
-                <p className="text-[10px] opacity-80">Online & Ready to Help</p>
+                <p className="text-[10px] opacity-80">Qwen AI Powered Assistant</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-               <Select value={language} onValueChange={(val) => setLanguage(val as Language)}>
-                <SelectTrigger className="h-8 w-24 bg-white/20 border-none text-xs">
-                  <Globe className="h-3 w-3 mr-1" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="English">English</SelectItem>
-                  <SelectItem value="Tamil">Tamil</SelectItem>
-                  <SelectItem value="Hindi">Hindi</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 text-primary-foreground hover:bg-white/20">
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
+            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 text-primary-foreground hover:bg-white/20">
+              <X className="h-5 w-5" />
+            </Button>
           </CardHeader>
           <CardContent className="flex-1 overflow-hidden p-0 bg-muted/30">
             <ScrollArea className="h-full p-4" viewportRef={scrollRef}>
@@ -115,7 +91,7 @@ export function ChatbotFloating() {
             </ScrollArea>
           </CardContent>
           <CardFooter className="p-4 bg-white dark:bg-zinc-900 border-t shrink-0 flex gap-2">
-            <VoiceInput language={LANG_CODES[language] as any} onTranscript={(text) => handleSend(text)} />
+            <VoiceInput onTranscript={(text) => handleSend(text)} />
             <Input 
               placeholder="Type your question..." 
               value={input} 

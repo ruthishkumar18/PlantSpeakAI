@@ -52,5 +52,7 @@ export const STRESS_LABELS: Record<number, { label: string; emoji: string; icon:
   }
 };
 
-export const THINGSPEAK_URL = 'https://api.thingspeak.com/channels/3325119/feeds.json?results=1';
+export const THINGSPEAK_CHANNEL_ID = '3325119';
+export const THINGSPEAK_READ_KEY = 'SMRS4S9PSXXYFIL2';
+export const THINGSPEAK_URL = `https://api.thingspeak.com/channels/${THINGSPEAK_CHANNEL_ID}/feeds.json?api_key=${THINGSPEAK_READ_KEY}`;
 export const REFRESH_INTERVAL = 15000;

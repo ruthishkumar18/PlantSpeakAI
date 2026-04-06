@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview A multi-language chatbot assistant for PlantSpeakAI.
+ * @fileOverview A multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
  *
- * - chatbotInteractionAndLanguageSupport - A function that handles chatbot interactions with language support.
+ * - chatbotInteractionAndLanguageSupport - A function that handles chatbot interactions with OpenRouter integration.
  * - ChatbotInteractionAndLanguageSupportInput - The input type for the chatbotInteractionAndLanguageSupport function.
  * - ChatbotInteractionAndLanguageSupportOutput - The return type for the chatbotInteractionAndLanguageSupport function.
  */
@@ -10,9 +10,12 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const OPENROUTER_API_KEY = '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';
+const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+const MODEL_NAME = 'qwen/qwen3.6-plus:free';
+
 const ChatbotInteractionAndLanguageSupportInputSchema = z.object({
   query: z.string().describe('The user\'s query for the chatbot.'),
-  language: z.enum(['English', 'Tamil', 'Hindi']).describe('The desired language for the chatbot\'s response.'),
 });
 export type ChatbotInteractionAndLanguageSupportInput = z.infer<typeof ChatbotInteractionAndLanguageSupportInputSchema>;
 
@@ -21,35 +24,31 @@ const ChatbotInteractionAndLanguageSupportOutputSchema = z.object({
 });
 export type ChatbotInteractionAndLanguageSupportOutput = z.infer<typeof ChatbotInteractionAndLanguageSupportOutputSchema>;
 
+const SYSTEM_PROMPT = `You are PlantSpeakAI Assistant.
+
+- Answer ONLY questions related to:
+  PlantSpeakAI, plant health, stress detection, IoT, ESP32, sensors, and plant care.
+
+- If the question is NOT related, reply:
+  'I can only assist with PlantSpeakAI related queries.'
+
+- Support languages:
+  Tamil, English, Hindi
+
+- If user input is Tamil → reply in Tamil
+- If Hindi → reply in Hindi
+- Else → reply in English
+
+- Be short, clear, and helpful.
+
+- Provide solutions for plant stress:
+  water stress, heat stress, cold stress, pest attack, etc.`;
+
 export async function chatbotInteractionAndLanguageSupport(
   input: ChatbotInteractionAndLanguageSupportInput
 ): Promise<ChatbotInteractionAndLanguageSupportOutput> {
   return chatbotInteractionAndLanguageSupportFlow(input);
 }
-
-const chatbotPrompt = ai.definePrompt({
-  name: 'chatbotInteractionPrompt',
-  input: {schema: ChatbotInteractionAndLanguageSupportInputSchema},
-  output: {schema: ChatbotInteractionAndLanguageSupportOutputSchema},
-  prompt: `You are a helpful and specialized chatbot assistant for "PlantSpeakAI".
-
-Your primary function is to answer questions strictly related to the following topics:
-- PlantSpeakAI system
-- General plant care
-- Sensors (like those used in PlantSpeakAI, e.g., bio-electrical sensors, ESP32 connections)
-- Stress detection in plants
-
-If the user's query falls outside of these specific topics, you MUST respond with the EXACT phrase: "I can only assist with PlantSpeakAI related queries".
-Do NOT try to answer unrelated questions.
-Do NOT elaborate or provide additional information if the query is unrelated.
-
-If the query is related to the allowed topics, provide a helpful and concise answer.
-
-Ensure your response is in the requested language.
-
-User's query: "{{{query}}}"
-Requested language for response: "{{{language}}}"`,
-});
 
 const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
   {
@@ -58,7 +57,42 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
     outputSchema: ChatbotInteractionAndLanguageSupportOutputSchema,
   },
   async (input) => {
-    const {output} = await chatbotPrompt(input);
-    return output!;
+    try {
+      const response = await fetch(OPENROUTER_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://plantspeakai.firebaseapp.com', // Optional but good practice for OpenRouter
+          'X-Title': 'PlantSpeakAI',
+        },
+        body: JSON.stringify({
+          model: MODEL_NAME,
+          messages: [
+            {
+              role: 'system',
+              content: SYSTEM_PROMPT
+            },
+            {
+              role: 'user',
+              content: input.query
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || 'I could not generate a response.';
+
+      return { response: content };
+    } catch (err) {
+      console.error('Chatbot Integration Error:', err);
+      return { response: 'Sorry, I am having trouble connecting to the chat service right now.' };
+    }
   }
 );
