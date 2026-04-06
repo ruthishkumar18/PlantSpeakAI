@@ -38,7 +38,7 @@ export function ChatbotFloating() {
       const response = await chatbotInteractionAndLanguageSupport({ query });
       setMessages(prev => [...prev, { role: 'bot', content: response.response }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'bot', content: '⚠️ Service unavailable. Please try again later.' }]);
+      setMessages(prev => [...prev, { role: 'bot', content: '⚠️ Service unavailable. Please check your key.' }]);
     } finally {
       setLoading(false);
     }

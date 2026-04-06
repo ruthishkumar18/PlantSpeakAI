@@ -25,22 +25,13 @@ export type ChatbotInteractionAndLanguageSupportOutput = z.infer<typeof ChatbotI
 
 const SYSTEM_PROMPT = `You are PlantSpeakAI Assistant.
 
-- Answer ONLY questions related to:
-  PlantSpeakAI, plant health, stress detection, IoT, ESP32, sensors, and plant care.
-
-- If the question is NOT related, reply:
-  'I can only assist with PlantSpeakAI related queries.'
-
+- Answer ONLY questions related to: PlantSpeakAI, plant health, stress detection, IoT, ESP32, sensors, and plant care.
+- If the question is NOT related, reply: 'I can only assist with PlantSpeakAI related queries.'
 - Support languages: Tamil, English, Hindi.
 - If user input is Tamil → reply in Tamil. If Hindi → reply in Hindi. Else → reply in English.
+- MANDATORY: Keep responses extremely brief (strictly 2-3 lines max). 
+- Be direct, clear, and provide solutions quickly. No long explanations.`;
 
-- MANDATORY: Keep responses extremely brief (strictly 2-3 lines).
-- Be direct, clear, and provide solutions quickly without long explanations.
-- Focus on actionable advice for plant stress like water, heat, cold, or pests.`;
-
-/**
- * Server Action to handle chatbot interactions securely.
- */
 export async function chatbotInteractionAndLanguageSupport(
   input: ChatbotInteractionAndLanguageSupportInput
 ): Promise<ChatbotInteractionAndLanguageSupportOutput> {
@@ -72,21 +63,14 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
         body: JSON.stringify({
           model: MODEL_NAME,
           messages: [
-            {
-              role: 'system',
-              content: SYSTEM_PROMPT
-            },
-            {
-              role: 'user',
-              content: input.query
-            }
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: input.query }
           ]
         })
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+        throw new Error(`OpenRouter API error: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -95,7 +79,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
       return { response: content.trim() };
     } catch (err) {
       console.error('Chatbot Integration Error:', err);
-      return { response: 'Sorry, I am having trouble connecting to the chat service right now. Please verify your internet connection or API key.' };
+      return { response: 'Sorry, I am having trouble connecting to the chat service. Please check your internet or API key.' };
     }
   }
 );

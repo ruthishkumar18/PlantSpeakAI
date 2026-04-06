@@ -15,10 +15,10 @@ import {
   Activity, 
   TrendingDown, 
   BarChart3, 
-  Clock,
   Download,
   LineChart as LineChartIcon,
-  ShieldAlert
+  ShieldAlert,
+  AlertCircle
 } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
@@ -75,9 +75,9 @@ export default function Home() {
   ];
 
   const languages = [
-    { id: 'en', label: 'English', icon: '🌐' },
-    { id: 'ta', label: 'Tamil', icon: '🇮🇳' },
-    { id: 'hi', label: 'Hindi', icon: '🇮🇳' },
+    { id: 'en', label: 'English' },
+    { id: 'ta', label: 'Tamil' },
+    { id: 'hi', label: 'Hindi' },
   ];
 
   const chartData = history.map(h => ({
@@ -87,27 +87,21 @@ export default function Home() {
   }));
 
   const chartConfig = {
-    raw: {
-      label: "Raw Value",
-      color: "hsl(var(--primary))",
-    },
-    avg: {
-      label: "Average",
-      color: "hsl(var(--secondary))",
-    },
+    raw: { label: "Raw Value", color: "hsl(var(--primary))" },
+    avg: { label: "Average", color: "hsl(var(--secondary))" },
   };
 
-  const currentStress = data ? (STRESS_LABELS[parseInt(data.field4)] || STRESS_LABELS[0]) : null;
+  const currentStress = data ? (STRESS_LABELS[parseInt(data.field4)] || STRESS_LABELS[0]) : STRESS_LABELS[0];
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      <header className="w-full bg-primary text-primary-foreground py-3 px-6 flex items-center justify-between shadow-lg">
+      <header className="w-full bg-primary text-primary-foreground py-3 px-6 flex items-center justify-between shadow-lg sticky top-0 z-50">
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <Leaf className="h-6 w-6 fill-current" />
             <h1 className="text-xl font-black tracking-tight leading-none">PlantSpeakAI</h1>
           </div>
-          <p className="text-[10px] font-medium opacity-80 uppercase tracking-tighter ml-8">Bio-Electric Plant Health Monitor</p>
+          <p className="text-[10px] font-medium opacity-80 uppercase tracking-tighter ml-8">Bio-Electric Health Monitor</p>
         </div>
         
         <div className="flex items-center gap-4">
@@ -115,20 +109,27 @@ export default function Home() {
             variant="ghost" 
             size="sm" 
             onClick={exportCSV}
-            className="hidden sm:flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest"
+            className="hidden sm:flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full text-[10px] font-bold uppercase"
           >
             <Download className="h-3 w-3" />
-            Export
+            Export CSV
           </Button>
           <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/20">
-            <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Live</span>
+            <div className={cn("h-2 w-2 rounded-full animate-pulse", error ? "bg-red-400" : "bg-green-400")} />
+            <span className="text-[10px] font-bold uppercase tracking-widest">{error ? "Offline" : "Live"}</span>
           </div>
           <ThemeToggle />
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
+        {error && (
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-center gap-3 text-destructive text-sm font-bold">
+            <AlertCircle className="h-5 w-5" />
+            {error}. Retrying automatically...
+          </div>
+        )}
+
         <div className="flex flex-col items-center gap-6 mb-8">
           <div className="flex items-center gap-2 bg-white/50 dark:bg-zinc-800/50 p-1 rounded-full border">
             {languages.map((lang) => (
@@ -138,7 +139,7 @@ export default function Home() {
                 size="sm"
                 onClick={() => setActiveLang(lang.id)}
                 className={cn(
-                  "rounded-full gap-2 transition-all px-6",
+                  "rounded-full px-6",
                   activeLang === lang.id ? "bg-primary text-white shadow-md" : "text-muted-foreground"
                 )}
               >
@@ -148,9 +149,9 @@ export default function Home() {
           </div>
 
           <div className="w-full max-w-2xl space-y-2">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest">
-              <input type="checkbox" checked readOnly className="h-3 w-3 rounded border-primary text-primary" />
-              Auto-refresh in {countdown}s
+            <div className="flex items-center justify-between text-[10px] font-bold text-primary uppercase tracking-widest">
+              <span>Sensor Sync Status</span>
+              <span>Next update in {countdown}s</span>
             </div>
             <Progress value={(countdown / (REFRESH_INTERVAL / 1000)) * 100} className="h-1.5" />
           </div>
@@ -159,11 +160,11 @@ export default function Home() {
         <section className="mb-10">
           <div className="section-header">
             <Activity className="h-4 w-4" />
-            Live Sensor Data
+            Real-Time Metrics
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {metrics.map((m, i) => (
-              <Card key={i} className="dashboard-card overflow-hidden group">
+              <Card key={i} className="dashboard-card overflow-hidden">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className={cn("p-2 rounded-xl", m.bg)}>
@@ -172,9 +173,9 @@ export default function Home() {
                     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{m.label}</span>
                   </div>
                   {loading && !data ? (
-                    <Skeleton className="h-12 w-32" />
+                    <Skeleton className="h-10 w-24" />
                   ) : (
-                    <div className="text-4xl font-black tabular-nums tracking-tighter">
+                    <div className="text-3xl font-black tabular-nums tracking-tighter">
                       {data ? Number(m.value).toFixed(2) : '0.00'}
                     </div>
                   )}
@@ -185,17 +186,17 @@ export default function Home() {
             <Card className="dashboard-card border-none shadow-sm bg-white dark:bg-zinc-900/50">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className={cn("p-2 rounded-xl", currentStress?.color.split(' ')[1] || 'bg-zinc-100')}>
-                    <ShieldAlert className={cn("h-5 w-5", currentStress?.color.split(' ')[0] || 'text-zinc-500')} />
+                  <div className={cn("p-2 rounded-xl", currentStress.color.split(' ')[1])}>
+                    <ShieldAlert className={cn("h-5 w-5", currentStress.color.split(' ')[0])} />
                   </div>
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">STRESS STATUS</span>
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">STRESS TYPE</span>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-2xl font-black tracking-tight truncate flex items-center gap-2">
-                    {currentStress ? `${currentStress.emoji} ${currentStress.label}` : 'Loading...'}
+                  <p className="text-2xl font-black tracking-tight flex items-center gap-2">
+                    {currentStress.emoji} {currentStress.label}
                   </p>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tabular-nums">
-                    Updated: {data ? new Date(data.created_at).toLocaleTimeString() : '--:--:--'}
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                    Detected {data ? new Date(data.created_at).toLocaleTimeString() : '--'}
                   </p>
                 </div>
               </CardContent>
@@ -206,11 +207,11 @@ export default function Home() {
         <section className="mb-10">
           <div className="section-header">
             <LineChartIcon className="h-4 w-4" />
-            Live Signal Monitoring
+            Bio-Electrical Signal Trend
           </div>
           <Card className="dashboard-card border-none shadow-md overflow-hidden bg-white dark:bg-zinc-900">
             <CardContent className="p-6">
-              <div className="h-[300px] w-full">
+              <div className="h-[350px] w-full">
                 {loading && history.length === 0 ? (
                   <Skeleton className="h-full w-full rounded-2xl" />
                 ) : (
@@ -223,36 +224,11 @@ export default function Home() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                      <XAxis 
-                        dataKey="time" 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 700 }}
-                        dy={10}
-                      />
-                      <YAxis 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 700 }}
-                        dx={-10}
-                      />
+                      <XAxis dataKey="time" hide />
+                      <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Area 
-                        type="monotone" 
-                        dataKey="raw" 
-                        stroke="var(--color-raw)" 
-                        strokeWidth={3}
-                        fillOpacity={1} 
-                        fill="url(#colorRaw)" 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="avg" 
-                        stroke="var(--color-avg)" 
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        fill="transparent" 
-                      />
+                      <Area type="monotone" dataKey="raw" stroke="var(--color-raw)" strokeWidth={3} fill="url(#colorRaw)" />
+                      <Area type="monotone" dataKey="avg" stroke="var(--color-avg)" strokeWidth={2} strokeDasharray="5 5" fill="transparent" />
                     </AreaChart>
                   </ChartContainer>
                 )}
@@ -261,39 +237,12 @@ export default function Home() {
           </Card>
         </section>
 
-        <section className="mb-10">
-          <div className="section-header">
-            <Leaf className="h-4 w-4" />
-            Plant Status & AI Advisor
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            <div className="lg:col-span-12">
-              {loading && !data ? (
-                <Skeleton className="h-[400px] w-full rounded-[2rem]" />
-              ) : (
-                <StressStatusCard stressLabel={parseInt(data?.field4 || '0')} />
-              )}
-            </div>
-          </div>
-        </section>
-
         <section className="mb-20">
           <div className="section-header">
-            <BarChart3 className="h-4 w-4" />
-            Stress Reference
+            <Leaf className="h-4 w-4" />
+            AI Care Advisor & Checklist
           </div>
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(STRESS_LABELS).map(([id, label]) => (
-              <div 
-                key={id} 
-                className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-4 py-2 rounded-full border shadow-sm text-[10px] font-black uppercase tracking-widest"
-              >
-                <div className={cn("h-2 w-2 rounded-full", label.color.split(' ')[0])} />
-                <span className="opacity-60 text-base">{label.emoji}</span>
-                {label.label}
-              </div>
-            ))}
-          </div>
+          <StressStatusCard stressLabel={parseInt(data?.field4 || '0')} />
         </section>
       </main>
 

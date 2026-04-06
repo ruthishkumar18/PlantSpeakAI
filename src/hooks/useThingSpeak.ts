@@ -17,23 +17,35 @@ export function useThingSpeak() {
 
   const fetchData = useCallback(async () => {
     try {
-      // Fetch 20 results for history/charting using the API key from constants
-      const response = await fetch(`${THINGSPEAK_URL}&results=20`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`Failed to fetch data: ${response.statusText}`);
+      // Use a timeout to prevent hanging fetches
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 8000);
+
+      const response = await fetch(`${THINGSPEAK_URL}&results=20`, { 
+        cache: 'no-store',
+        signal: controller.signal
+      });
+      
+      clearTimeout(id);
+
+      if (!response.ok) throw new Error(`API returned ${response.status}`);
       
       const json = await response.json();
       if (json.feeds && json.feeds.length > 0) {
         const latest = json.feeds[json.feeds.length - 1];
-        // Only update if we have actual numeric data
         if (latest.field1 !== null) {
           setData(latest);
           setHistory(json.feeds);
           setError(null);
         }
       }
-    } catch (err) {
-      console.error('ThingSpeak Fetch Error:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        setError('Request timed out');
+      } else {
+        console.error('ThingSpeak Fetch Error:', err);
+        setError('Unable to reach sensor network');
+      }
     } finally {
       setLoading(false);
     }
