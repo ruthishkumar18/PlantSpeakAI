@@ -1,10 +1,11 @@
+
 'use server';
 /**
- * @fileOverview A multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
+ * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
  *
- * - chatbotInteractionAndLanguageSupport - A function that handles chatbot interactions with OpenRouter integration.
- * - ChatbotInteractionAndLanguageSupportInput - The input type for the chatbotInteractionAndLanguageSupport function.
- * - ChatbotInteractionAndLanguageSupportOutput - The return type for the chatbotInteractionAndLanguageSupport function.
+ * - chatbotInteractionAndLanguageSupport - A server-side function that handles chatbot interactions.
+ * - ChatbotInteractionAndLanguageSupportInput - The input type for the chatbot function.
+ * - ChatbotInteractionAndLanguageSupportOutput - The return type for the chatbot function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -43,6 +44,10 @@ const SYSTEM_PROMPT = `You are PlantSpeakAI Assistant.
 - Provide solutions for plant stress:
   water stress, heat stress, cold stress, pest attack, etc.`;
 
+/**
+ * Server Action to handle chatbot interactions securely.
+ * This runs only on the server, keeping the API key hidden from the client.
+ */
 export async function chatbotInteractionAndLanguageSupport(
   input: ChatbotInteractionAndLanguageSupportInput
 ): Promise<ChatbotInteractionAndLanguageSupportOutput> {
@@ -59,7 +64,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
     try {
       const apiKey = process.env.OPENROUTER_API_KEY;
       if (!apiKey) {
-        throw new Error('OPENROUTER_API_KEY is not configured.');
+        throw new Error('OPENROUTER_API_KEY is not configured in environment variables.');
       }
 
       const response = await fetch(OPENROUTER_ENDPOINT, {
@@ -67,7 +72,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://plantspeakai.firebaseapp.com',
+          'HTTP-Referer': 'https://plantspeakai.firebaseapp.com', // Optional: your site URL
           'X-Title': 'PlantSpeakAI',
         },
         body: JSON.stringify({

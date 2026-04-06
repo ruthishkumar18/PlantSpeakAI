@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -35,6 +36,7 @@ export function ChatbotFloating() {
     setLoading(true);
 
     try {
+      // Calling the Server Action directly for a secure, efficient request
       const response = await chatbotInteractionAndLanguageSupport({
         query,
       });
