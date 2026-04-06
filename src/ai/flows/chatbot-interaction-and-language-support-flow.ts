@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
@@ -11,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL_NAME = 'qwen/qwen3.6-plus:free';
+const MODEL_NAME = 'google/gemini-2.0-flash-lite-preview-02-05:free';
 
 const ChatbotInteractionAndLanguageSupportInputSchema = z.object({
   query: z.string().describe('The user\'s query for the chatbot.'),

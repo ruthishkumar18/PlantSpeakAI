@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { THINGSPEAK_URL, REFRESH_INTERVAL } from '@/lib/constants';
 
@@ -17,7 +18,7 @@ export function useThingSpeak() {
 
   const fetchData = useCallback(async () => {
     try {
-      // Use a timeout to prevent hanging fetches
+      // Use a timeout to prevent hanging fetches which causes the "Failed to fetch" error source
       const controller = new AbortController();
       const id = setTimeout(() => controller.abort(), 8000);
 
