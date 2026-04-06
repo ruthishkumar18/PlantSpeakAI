@@ -35,11 +35,11 @@ const SYSTEM_PROMPT = `You are PlantSpeakAI Assistant.
 - If user input is Tamil → reply in Tamil. If Hindi → reply in Hindi. Else → reply in English.
 
 - MANDATORY: Keep responses extremely brief (strictly 2-3 lines).
-- Be direct, clear, and provide solutions quickly without long explanations.`;
+- Be direct, clear, and provide solutions quickly without long explanations.
+- Focus on actionable advice for plant stress like water, heat, cold, or pests.`;
 
 /**
  * Server Action to handle chatbot interactions securely.
- * This runs only on the server, keeping the API key hidden from the client.
  */
 export async function chatbotInteractionAndLanguageSupport(
   input: ChatbotInteractionAndLanguageSupportInput
@@ -58,7 +58,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
       const apiKey = process.env.OPENROUTER_API_KEY;
       
       if (!apiKey) {
-        return { response: "API Key is missing. Please check your environment configuration." };
+        return { response: "API Key is missing in environment variables." };
       }
 
       const response = await fetch(OPENROUTER_ENDPOINT, {
@@ -95,7 +95,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
       return { response: content.trim() };
     } catch (err) {
       console.error('Chatbot Integration Error:', err);
-      return { response: 'Sorry, I am having trouble connecting to the chat service right now.' };
+      return { response: 'Sorry, I am having trouble connecting to the chat service right now. Please verify your internet connection or API key.' };
     }
   }
 );
