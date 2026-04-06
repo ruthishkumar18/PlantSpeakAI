@@ -16,10 +16,27 @@ import {
   TrendingDown, 
   BarChart3, 
   Clock,
-  Download
+  Download,
+  LineChart as LineChartIcon
 } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area
+} from 'recharts';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 export default function Home() {
   const { data, history, loading, error } = useThingSpeak();
@@ -64,6 +81,23 @@ export default function Home() {
     { id: 'ta', label: 'Tamil', icon: '🇮🇳' },
     { id: 'hi', label: 'Hindi', icon: '🇮🇳' },
   ];
+
+  const chartData = history.map(h => ({
+    time: new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    raw: parseFloat(h.field1) || 0,
+    avg: parseFloat(h.field3) || 0,
+  }));
+
+  const chartConfig = {
+    raw: {
+      label: "Raw Value",
+      color: "hsl(var(--primary))",
+    },
+    avg: {
+      label: "Average",
+      color: "hsl(var(--secondary))",
+    },
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -167,6 +201,65 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
+        </section>
+
+        {/* Live Graph Section */}
+        <section className="mb-10">
+          <div className="section-header">
+            <LineChartIcon className="h-4 w-4" />
+            Live Signal Monitoring
+          </div>
+          <Card className="dashboard-card border-none shadow-md overflow-hidden bg-white dark:bg-zinc-900">
+            <CardContent className="p-6">
+              <div className="h-[300px] w-full">
+                {loading && history.length === 0 ? (
+                  <Skeleton className="h-full w-full rounded-2xl" />
+                ) : (
+                  <ChartContainer config={chartConfig} className="h-full w-full">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorRaw" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--color-raw)" stopOpacity={0.1}/>
+                          <stop offset="95%" stopColor="var(--color-raw)" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="time" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 700 }}
+                        dy={10}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 700 }}
+                        dx={-10}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Area 
+                        type="monotone" 
+                        dataKey="raw" 
+                        stroke="var(--color-raw)" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorRaw)" 
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="avg" 
+                        stroke="var(--color-avg)" 
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        fill="transparent" 
+                      />
+                    </AreaChart>
+                  </ChartContainer>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Status & Advisor Section */}
