@@ -10,7 +10,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const OPENROUTER_API_KEY = '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';
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL_NAME = 'qwen/qwen3.6-plus:free';
 
@@ -58,12 +57,17 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
   },
   async (input) => {
     try {
+      const apiKey = process.env.OPENROUTER_API_KEY;
+      if (!apiKey) {
+        throw new Error('OPENROUTER_API_KEY is not configured.');
+      }
+
       const response = await fetch(OPENROUTER_ENDPOINT, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://plantspeakai.firebaseapp.com', // Optional but good practice for OpenRouter
+          'HTTP-Referer': 'https://plantspeakai.firebaseapp.com',
           'X-Title': 'PlantSpeakAI',
         },
         body: JSON.stringify({

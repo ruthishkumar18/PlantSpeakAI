@@ -68,12 +68,12 @@ export default function Home() {
 
   const chartData = history.map(h => ({
     time: new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    value: parseFloat(h.field1),
-    avg: parseFloat(h.field3)
+    value: parseFloat(h.field1) || 0,
+    avg: parseFloat(h.field3) || 0
   }));
 
   return (
-    <div className="min-h-screen pb-20 transition-colors duration-500">
+    <div className="min-h-screen pb-20 transition-colors duration-500 bg-background text-foreground">
       <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ export default function Home() {
               variant="outline" 
               size="sm" 
               onClick={exportToCSV}
-              className="gap-2"
+              className="gap-2 border-primary text-primary hover:bg-primary/10"
               disabled={!history.length}
             >
               <Download className="h-4 w-4" />
@@ -141,14 +141,14 @@ export default function Home() {
               ))}
             </div>
 
-            <Card className="border-2 overflow-hidden">
+            <Card className="border-2 overflow-hidden bg-card">
                <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Activity className="h-5 w-5 text-primary" />
                   Live Bio-electrical Signal Visualization
                 </CardTitle>
               </CardHeader>
-              <CardContent className="h-[350px] p-4">
+              <CardContent className="h-[400px] w-full p-4">
                 {loading && !history.length ? (
                   <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
                     <RefreshCcw className="h-8 w-8 animate-spin text-primary opacity-20" />
@@ -156,8 +156,8 @@ export default function Home() {
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                    <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" opacity={0.5} />
                       <XAxis 
                         dataKey="time" 
                         fontSize={10} 
@@ -176,15 +176,17 @@ export default function Home() {
                           backgroundColor: 'hsl(var(--background))', 
                           borderColor: 'hsl(var(--border))',
                           borderRadius: 'var(--radius)',
-                          fontSize: '12px'
+                          fontSize: '12px',
+                          color: 'hsl(var(--foreground))'
                         }}
                       />
                       <Line 
                         type="monotone" 
                         dataKey="value" 
                         stroke="hsl(var(--primary))" 
-                        strokeWidth={2} 
-                        dot={false}
+                        strokeWidth={3} 
+                        dot={{ r: 4, fill: 'hsl(var(--primary))' }}
+                        activeDot={{ r: 6 }}
                         animationDuration={1000}
                       />
                       <Line 
