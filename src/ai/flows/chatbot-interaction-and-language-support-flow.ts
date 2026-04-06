@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
@@ -63,8 +62,9 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
   async (input) => {
     try {
       const apiKey = process.env.OPENROUTER_API_KEY;
+      
       if (!apiKey) {
-        throw new Error('OPENROUTER_API_KEY is not configured in environment variables.');
+        return { response: "API Key is missing. Please check your environment configuration." };
       }
 
       const response = await fetch(OPENROUTER_ENDPOINT, {
@@ -72,7 +72,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://plantspeakai.firebaseapp.com', // Optional: your site URL
+          'HTTP-Referer': 'https://plantspeakai.firebaseapp.com',
           'X-Title': 'PlantSpeakAI',
         },
         body: JSON.stringify({
@@ -91,7 +91,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
       }
 
@@ -101,7 +101,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
       return { response: content };
     } catch (err) {
       console.error('Chatbot Integration Error:', err);
-      return { response: 'Sorry, I am having trouble connecting to the chat service right now.' };
+      return { response: 'Sorry, I am having trouble connecting to the chat service right now. Please verify your internet connection or API key.' };
     }
   }
 );
