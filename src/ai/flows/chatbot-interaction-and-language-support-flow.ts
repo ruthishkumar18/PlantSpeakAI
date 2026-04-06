@@ -62,7 +62,6 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      // Updated API key to latest provided by user
       const apiKey = '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';
       
       const preferredLanguage = input.language || 'English';
