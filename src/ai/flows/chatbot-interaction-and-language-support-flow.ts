@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using Llama 3.2 3B.
- * Enforces strict 2-3 line responses for speed and specific topic focus.
+ * Enforces strict 2-3 line responses and specific topic focus.
  */
 
 import {ai} from '@/ai/genkit';
@@ -62,7 +62,8 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const apiKey = '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';
+      // Updated API key to latest provided by user
+      const apiKey = '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';
       
       const preferredLanguage = input.language || 'English';
       const resolvedSystemPrompt = SYSTEM_PROMPT.replace('{{language}}', preferredLanguage);

@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating actionable care advice based on detected plant stress.
- * Enforces strict 2-3 line responses for quick reading using Llama 3.2 3B.
+ * Enforces strict 2-3 line responses for quick reading.
  */
 
 import { ai } from '@/ai/genkit';
@@ -53,7 +53,7 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
     }
 
     try {
-      const apiKey = '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';
+      const apiKey = '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';
 
       const response = await fetch(OPENROUTER_ENDPOINT, {
         method: 'POST',
