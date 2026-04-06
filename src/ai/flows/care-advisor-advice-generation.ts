@@ -59,7 +59,7 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://plantspeakai.firebaseapp.com',
+          'HTTP-Referer': 'https://github.com/ruthishkumar18/PlantSpeakAI',
           'X-OpenRouter-Title': 'PlantSpeakAI Advisor',
         },
         body: JSON.stringify({
