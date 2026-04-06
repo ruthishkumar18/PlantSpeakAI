@@ -1,242 +1,210 @@
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useThingSpeak } from '@/hooks/useThingSpeak';
 import { StressStatusCard } from '@/components/StressStatusCard';
 import { ChatbotFloating } from '@/components/ChatbotFloating';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { STRESS_LABELS, REFRESH_INTERVAL } from '@/lib/constants';
 import { 
-  RefreshCcw, 
   Leaf, 
   Activity, 
-  Layers, 
+  TrendingDown, 
   BarChart3, 
-  Clock, 
-  Download,
-  AlertCircle
+  Clock,
+  Download
 } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend
-} from 'recharts';
 
 export default function Home() {
-  const { data, history, loading, error, refetch } = useThingSpeak();
+  const { data, history, loading, error } = useThingSpeak();
+  const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
+  const [activeLang, setActiveLang] = useState('en');
 
-  const metrics = [
-    { label: 'Raw Value', value: data?.field1, icon: Activity, color: 'text-emerald-500', unit: 'bits' },
-    { label: 'Difference', value: data?.field2, icon: Layers, color: 'text-orange-500', unit: 'Δ' },
-    { label: 'Average', value: data?.field3, icon: BarChart3, color: 'text-blue-500', unit: 'avg' },
-  ];
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => (prev > 0 ? prev - 1 : REFRESH_INTERVAL / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const exportToCSV = () => {
+  const exportCSV = () => {
     if (!history.length) return;
-    
-    const headers = ['Timestamp', 'Raw Value', 'Difference', 'Average', 'Stress Label'];
+    const headers = ['Timestamp', 'Value (Raw)', 'Diff', 'Avg', 'Stress Label'];
     const rows = history.map(feed => [
-      new Date(feed.created_at).toLocaleString(),
+      feed.created_at,
       feed.field1,
       feed.field2,
       feed.field3,
-      feed.field4
+      STRESS_LABELS[parseInt(feed.field4)]?.label || 'Unknown'
     ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `plant_data_${new Date().toISOString().slice(0,10)}.csv`);
-    link.style.visibility = 'hidden';
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `plantspeak_data_${new Date().toISOString()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const chartData = history.map(h => ({
-    time: new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    value: parseFloat(h.field1) || 0,
-    avg: parseFloat(h.field3) || 0
-  }));
+  const metrics = [
+    { label: 'RAW VALUE', value: data?.field1, icon: Activity, color: 'text-orange-500', bg: 'bg-orange-50' },
+    { label: 'DIFFERENCE', value: data?.field2, icon: TrendingDown, color: 'text-pink-500', bg: 'bg-pink-50' },
+    { label: 'AVERAGE', value: data?.field3, icon: BarChart3, color: 'text-blue-500', bg: 'bg-blue-50' },
+  ];
+
+  const languages = [
+    { id: 'en', label: 'English', icon: '🌐' },
+    { id: 'ta', label: 'Tamil', icon: '🇮🇳' },
+    { id: 'hi', label: 'Hindi', icon: '🇮🇳' },
+  ];
 
   return (
-    <div className="min-h-screen pb-20 transition-colors duration-500 bg-background text-foreground">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      {/* Top Header */}
+      <header className="w-full bg-primary text-primary-foreground py-3 px-6 flex items-center justify-between shadow-lg">
+        <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary rounded-xl text-primary-foreground">
-              <Leaf className="h-6 w-6" />
-            </div>
-            <h1 className="text-xl font-bold tracking-tight">PlantSpeakAI</h1>
+            <Leaf className="h-6 w-6 fill-current" />
+            <h1 className="text-xl font-black tracking-tight leading-none">PlantSpeakAI</h1>
           </div>
-          <div className="flex items-center gap-2">
-            {loading && (
-              <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground mr-2">
-                <RefreshCcw className="h-3 w-3 animate-spin" />
-                Updating...
-              </div>
-            )}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={exportToCSV}
-              className="gap-2 border-primary text-primary hover:bg-primary/10"
-              disabled={!history.length}
-            >
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Export CSV</span>
-            </Button>
-            <ThemeToggle />
+          <p className="text-[10px] font-medium opacity-80 uppercase tracking-tighter ml-8">Bio-Electric Plant Health Monitor</p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={exportCSV}
+            className="hidden sm:flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest"
+          >
+            <Download className="h-3 w-3" />
+            Export
+          </Button>
+          <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/20">
+            <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Live</span>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        {error && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center justify-between gap-4 text-destructive">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              <p className="text-sm font-medium">Error connecting to live data stream: {error}</p>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => refetch()} className="border-destructive/50 text-destructive hover:bg-destructive/10">
-              Retry Connection
-            </Button>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          <div className="lg:col-span-8 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-primary">Plant Dashboard</h2>
-                <p className="text-muted-foreground text-sm flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  Last update: {data ? new Date(data.created_at).toLocaleTimeString() : 'Connecting...'}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {metrics.map((m, i) => (
-                <Card key={i} className="border-2 transition-transform hover:-translate-y-1">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs font-medium text-muted-foreground uppercase">{m.label}</CardTitle>
-                    <m.icon className={cn("h-4 w-4", m.color)} />
-                  </CardHeader>
-                  <CardContent>
-                    {loading && !data ? (
-                      <Skeleton className="h-8 w-24" />
-                    ) : (
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold tabular-nums">
-                          {data ? Number(m.value).toFixed(2) : '0.00'}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{m.unit}</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <Card className="border-2 overflow-hidden bg-card shadow-lg">
-               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-primary" />
-                  Live Bio-electrical Signal Visualization
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="h-[450px] w-full p-4">
-                {loading && !history.length ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
-                    <RefreshCcw className="h-8 w-8 animate-spin text-primary opacity-20" />
-                    <p className="text-sm text-muted-foreground">Initializing signal stream...</p>
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.1} />
-                      <XAxis 
-                        dataKey="time" 
-                        fontSize={11} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tick={{ fill: 'currentColor', opacity: 0.7 }}
-                        dy={10}
-                      />
-                      <YAxis 
-                        fontSize={11} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tick={{ fill: 'currentColor', opacity: 0.7 }}
-                        domain={['auto', 'auto']}
-                        dx={-10}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          borderColor: 'hsl(var(--border))',
-                          borderRadius: 'var(--radius)',
-                          fontSize: '12px',
-                          color: 'hsl(var(--card-foreground))',
-                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                        }}
-                      />
-                      <Legend verticalAlign="top" height={36}/>
-                      <Line 
-                        name="Raw Signal"
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={3} 
-                        dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: 'white' }}
-                        activeDot={{ r: 6, strokeWidth: 0 }}
-                        animationDuration={1500}
-                        isAnimationActive={true}
-                      />
-                      <Line 
-                        name="Average Trend"
-                        type="monotone" 
-                        dataKey="avg" 
-                        stroke="hsl(var(--secondary))" 
-                        strokeWidth={2} 
-                        strokeDasharray="5 5"
-                        dot={false}
-                        animationDuration={1500}
-                        isAnimationActive={true}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Language & Auto-Refresh */}
+        <div className="flex flex-col items-center gap-6 mb-8">
+          <div className="flex items-center gap-2 bg-white/50 dark:bg-zinc-800/50 p-1 rounded-full border">
+            {languages.map((lang) => (
+              <Button
+                key={lang.id}
+                variant={activeLang === lang.id ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveLang(lang.id)}
+                className={cn(
+                  "rounded-full gap-2 transition-all px-6",
+                  activeLang === lang.id ? "bg-primary text-white shadow-md" : "text-muted-foreground"
                 )}
+              >
+                <span className="text-sm font-bold">{lang.label}</span>
+              </Button>
+            ))}
+          </div>
+
+          <div className="w-full max-w-2xl space-y-2">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest">
+              <input type="checkbox" checked readOnly className="h-3 w-3 rounded border-primary text-primary" />
+              Auto-refresh in {countdown}s
+            </div>
+            <Progress value={(countdown / (REFRESH_INTERVAL / 1000)) * 100} className="h-1.5" />
+          </div>
+        </div>
+
+        {/* Live Sensor Data Section */}
+        <section className="mb-10">
+          <div className="section-header">
+            <Activity className="h-4 w-4" />
+            Live Sensor Data
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {metrics.map((m, i) => (
+              <Card key={i} className="dashboard-card overflow-hidden group">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={cn("p-2 rounded-xl", m.bg)}>
+                      <m.icon className={cn("h-5 w-5", m.color)} />
+                    </div>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{m.label}</span>
+                  </div>
+                  {loading && !data ? (
+                    <Skeleton className="h-12 w-32" />
+                  ) : (
+                    <div className="text-4xl font-black tabular-nums tracking-tighter">
+                      {data ? Number(m.value).toFixed(2) : '0.00'}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+            
+            <Card className="dashboard-card">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-zinc-100">
+                    <Clock className="h-5 w-5 text-zinc-500" />
+                  </div>
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Last Updated</span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-muted-foreground tabular-nums">
+                    {data ? new Date(data.created_at).toLocaleTimeString() : '--:--:--'}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
+        </section>
 
-          <div className="lg:col-span-4 h-full">
-             {loading && !data ? (
-               <Skeleton className="h-[500px] w-full" />
-             ) : (
-               <StressStatusCard stressLabel={parseInt(data?.field4 || '0')} />
-             )}
+        {/* Status & Advisor Section */}
+        <section className="mb-10">
+          <div className="section-header">
+            <Leaf className="h-4 w-4" />
+            Plant Status & AI Advisor
           </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            <div className="lg:col-span-12">
+              {loading && !data ? (
+                <Skeleton className="h-[400px] w-full rounded-[2rem]" />
+              ) : (
+                <StressStatusCard stressLabel={parseInt(data?.field4 || '0')} />
+              )}
+            </div>
+          </div>
+        </section>
 
-        </div>
+        {/* Stress Reference Section */}
+        <section className="mb-20">
+          <div className="section-header">
+            <BarChart3 className="h-4 w-4" />
+            Stress Reference
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {Object.entries(STRESS_LABELS).map(([id, label]) => (
+              <div 
+                key={id} 
+                className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-4 py-2 rounded-full border shadow-sm text-[10px] font-black uppercase tracking-widest"
+              >
+                <div className={cn("h-2 w-2 rounded-full", label.color.split(' ')[0])} />
+                <span className="opacity-60 text-base">{label.emoji}</span>
+                {label.label}
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
 
       <ChatbotFloating />

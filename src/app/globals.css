@@ -4,45 +4,45 @@
 
 @layer base {
   :root {
-    --background: 84 21% 92%;
+    --background: 120 15% 96%;
     --foreground: 132 40% 10%;
     --card: 0 0% 100%;
     --card-foreground: 132 40% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 132 40% 10%;
-    --primary: 132 28% 47%;
-    --primary-foreground: 84 21% 98%;
-    --secondary: 91 74% 78%;
-    --secondary-foreground: 132 40% 10%;
-    --muted: 84 10% 85%;
+    --primary: 132 35% 30%;
+    --primary-foreground: 120 15% 98%;
+    --secondary: 132 20% 90%;
+    --secondary-foreground: 132 40% 15%;
+    --muted: 120 10% 90%;
     --muted-foreground: 132 10% 40%;
-    --accent: 91 74% 78%;
+    --accent: 132 30% 85%;
     --accent-foreground: 132 40% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 132 10% 80%;
-    --input: 132 10% 80%;
-    --ring: 132 28% 47%;
-    --radius: 1rem;
+    --border: 132 10% 85%;
+    --input: 132 10% 85%;
+    --ring: 132 35% 30%;
+    --radius: 1.25rem;
   }
   .dark {
     --background: 132 40% 5%;
-    --foreground: 84 21% 92%;
-    --card: 132 40% 7%;
-    --card-foreground: 84 21% 92%;
-    --popover: 132 40% 7%;
-    --popover-foreground: 84 21% 92%;
-    --primary: 132 28% 57%;
+    --foreground: 120 15% 92%;
+    --card: 132 40% 8%;
+    --card-foreground: 120 15% 92%;
+    --popover: 132 40% 8%;
+    --popover-foreground: 120 15% 92%;
+    --primary: 132 25% 45%;
     --primary-foreground: 132 40% 5%;
-    --secondary: 91 74% 40%;
-    --secondary-foreground: 84 21% 92%;
-    --muted: 132 20% 15%;
-    --muted-foreground: 132 10% 70%;
-    --accent: 91 74% 40%;
-    --accent-foreground: 84 21% 92%;
-    --border: 132 20% 20%;
-    --input: 132 20% 20%;
-    --ring: 132 28% 57%;
+    --secondary: 132 20% 15%;
+    --secondary-foreground: 120 15% 92%;
+    --muted: 132 20% 12%;
+    --muted-foreground: 132 10% 65%;
+    --accent: 132 25% 20%;
+    --accent-foreground: 120 15% 92%;
+    --border: 132 20% 18%;
+    --input: 132 20% 18%;
+    --ring: 132 25% 45%;
   }
 }
 
@@ -55,10 +55,10 @@
   }
 }
 
-.glass-morphism {
-  @apply bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-xl;
+.section-header {
+  @apply flex items-center gap-2 text-sm font-bold text-primary mb-4 uppercase tracking-widest border-b pb-2;
 }
 
-.floating-chat {
-  @apply fixed bottom-6 right-6 z-50;
+.dashboard-card {
+  @apply rounded-[2rem] border-none shadow-sm transition-all hover:shadow-md bg-white dark:bg-zinc-900/50;
 }
