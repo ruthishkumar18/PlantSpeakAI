@@ -2,18 +2,14 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating actionable care advice based on detected plant stress.
- * Uses OpenRouter for advice generation to avoid Gemini dependency.
- *
- * - careAdvisorAdviceGeneration - A function that generates plant care advice.
- * - CareAdvisorAdviceGenerationInput - The input type for the careAdvisorAdviceGeneration function.
- * - CareAdvisorAdviceGenerationOutput - The return type for the careAdvisorAdviceGeneration function.
+ * Uses OpenRouter for advice generation.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL_NAME = 'qwen/qwen3.6-plus:free';
+const MODEL_NAME = 'qwen/qwen-2.5-7b-instruct:free';
 
 const CareAdvisorAdviceGenerationInputSchema = z.object({
   stressLabel: z.number().int().min(0).max(6).describe('The numeric label indicating the type of plant stress.'),
@@ -69,7 +65,7 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://plantspeakai.firebaseapp.com',
-          'X-Title': 'PlantSpeakAI',
+          'X-OpenRouter-Title': 'PlantSpeakAI',
         },
         body: JSON.stringify({
           model: MODEL_NAME,
