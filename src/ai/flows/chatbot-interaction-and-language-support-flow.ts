@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
+ * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using Llama 3.2 3B.
  * Enforces strict 2-3 line responses for speed and specific topic focus.
  */
 
@@ -8,7 +8,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL_NAME = 'liquid/lfm-2.5-1.2b-instruct:free';
+const MODEL_NAME = 'meta-llama/llama-3.2-3b-instruct:free';
 
 const ChatbotInteractionAndLanguageSupportInputSchema = z.object({
   query: z.string().describe("The user's query for the chatbot."),
@@ -62,7 +62,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const apiKey = process.env.OPENROUTER_API_KEY || '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';
+      const apiKey = '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';
       
       const preferredLanguage = input.language || 'English';
       const resolvedSystemPrompt = SYSTEM_PROMPT.replace('{{language}}', preferredLanguage);
