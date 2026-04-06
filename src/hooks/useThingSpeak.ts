@@ -18,14 +18,18 @@ export function useThingSpeak() {
   const fetchData = useCallback(async () => {
     try {
       // Fetch 20 results for history/charting using the API key from constants
-      const response = await fetch(`${THINGSPEAK_URL}&results=20`);
+      const response = await fetch(`${THINGSPEAK_URL}&results=20`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Failed to fetch data: ${response.statusText}`);
       
       const json = await response.json();
       if (json.feeds && json.feeds.length > 0) {
-        setData(json.feeds[json.feeds.length - 1]);
-        setHistory(json.feeds);
-        setError(null);
+        const latest = json.feeds[json.feeds.length - 1];
+        // Only update if we have actual numeric data
+        if (latest.field1 !== null) {
+          setData(latest);
+          setHistory(json.feeds);
+          setError(null);
+        }
       }
     } catch (err) {
       console.error('ThingSpeak Fetch Error:', err);

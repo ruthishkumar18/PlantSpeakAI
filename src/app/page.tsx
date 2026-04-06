@@ -1,4 +1,3 @@
-
 "use client"
 
 import React from 'react';
@@ -16,7 +15,8 @@ import {
   Layers, 
   BarChart3, 
   Clock, 
-  Download 
+  Download,
+  AlertCircle
 } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
@@ -32,7 +32,7 @@ import {
 } from 'recharts';
 
 export default function Home() {
-  const { data, history, loading } = useThingSpeak();
+  const { data, history, loading, error, refetch } = useThingSpeak();
 
   const metrics = [
     { label: 'Raw Value', value: data?.field1, icon: Activity, color: 'text-emerald-500', unit: 'bits' },
@@ -107,6 +107,18 @@ export default function Home() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center justify-between gap-4 text-destructive">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              <p className="text-sm font-medium">Error connecting to live data stream: {error}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => refetch()} className="border-destructive/50 text-destructive hover:bg-destructive/10">
+              Retry Connection
+            </Button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           <div className="lg:col-span-8 space-y-6">
