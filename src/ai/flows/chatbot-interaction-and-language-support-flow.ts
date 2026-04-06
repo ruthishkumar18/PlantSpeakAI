@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using Llama 3.2 3B.
+ * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI.
  * Enforces strict 2-3 line responses and specific topic focus.
  */
 
@@ -39,7 +39,7 @@ If the question is NOT related to the above topics, reply:
 "I can only assist with PlantSpeakAI related queries."
 
 STRICT RULES:
-- Keep answers VERY SHORT: exactly 2 to 3 lines.
+- Keep answers VERY SHORT: strictly 2 to 3 lines.
 - Be clear and accurate.
 - Language Rules:
   - If user speaks Tamil or language context is Tamil -> reply in Tamil
@@ -62,7 +62,7 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const apiKey = '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';
+      const apiKey = process.env.OPENROUTER_API_KEY || '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';
       
       const preferredLanguage = input.language || 'English';
       const resolvedSystemPrompt = SYSTEM_PROMPT.replace('{{language}}', preferredLanguage);
@@ -80,12 +80,14 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
           messages: [
             { role: 'system', content: resolvedSystemPrompt },
             { role: 'user', content: input.query }
-          ]
+          ],
+          max_tokens: 150,
+          temperature: 0.7,
         })
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
       }
 
