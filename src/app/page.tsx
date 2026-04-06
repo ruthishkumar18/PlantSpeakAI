@@ -1,18 +1,36 @@
 "use client"
 
 import React from 'react';
-import { useThingSpeak } from '@/hooks/useThingSpeak';
+import { useThingSpeak, PlantData } from '@/hooks/useThingSpeak';
 import { StressStatusCard } from '@/components/StressStatusCard';
 import { ChatbotFloating } from '@/components/ChatbotFloating';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCcw, Leaf, Activity, Layers, BarChart3, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  RefreshCcw, 
+  Leaf, 
+  Activity, 
+  Layers, 
+  BarChart3, 
+  Clock, 
+  Download 
+} from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 export default function Home() {
-  const { data, loading, error } = useThingSpeak();
+  const { data, history, loading, error } = useThingSpeak();
 
   const metrics = [
     { label: 'Raw Value', value: data?.field1, icon: Activity, color: 'text-emerald-500', unit: 'bits' },
@@ -20,9 +38,42 @@ export default function Home() {
     { label: 'Average', value: data?.field3, icon: BarChart3, color: 'text-blue-500', unit: 'avg' },
   ];
 
+  const exportToCSV = () => {
+    if (!history.length) return;
+    
+    const headers = ['Timestamp', 'Raw Value', 'Difference', 'Average', 'Stress Label'];
+    const rows = history.map(feed => [
+      new Date(feed.created_at).toLocaleString(),
+      feed.field1,
+      feed.field2,
+      feed.field3,
+      feed.field4
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `plant_data_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const chartData = history.map(h => ({
+    time: new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    value: parseFloat(h.field1),
+    avg: parseFloat(h.field3)
+  }));
+
   return (
     <div className="min-h-screen pb-20 transition-colors duration-500">
-      {/* Header */}
       <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -31,13 +82,23 @@ export default function Home() {
             </div>
             <h1 className="text-xl font-bold tracking-tight">PlantSpeakAI</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {loading && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground mr-2">
                 <RefreshCcw className="h-3 w-3 animate-spin" />
                 Updating...
               </div>
             )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={exportToCSV}
+              className="gap-2"
+              disabled={!history.length}
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Export CSV</span>
+            </Button>
             <ThemeToggle />
           </div>
         </div>
@@ -46,10 +107,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          {/* Main Dashboard Section */}
           <div className="lg:col-span-8 space-y-6">
-            
-            {/* Real-time Status Banner */}
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">Plant Dashboard</h2>
@@ -60,7 +118,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {metrics.map((m, i) => (
                 <Card key={i} className="border-2 transition-transform hover:-translate-y-1">
@@ -69,12 +126,12 @@ export default function Home() {
                     <m.icon className={cn("h-4 w-4", m.color)} />
                   </CardHeader>
                   <CardContent>
-                    {loading ? (
+                    {loading && !data ? (
                       <Skeleton className="h-8 w-24" />
                     ) : (
                       <div className="flex items-baseline gap-1">
                         <span className="text-2xl font-bold tabular-nums">
-                          {Number(m.value).toFixed(2)}
+                          {data ? Number(m.value).toFixed(2) : '0.00'}
                         </span>
                         <span className="text-xs text-muted-foreground">{m.unit}</span>
                       </div>
@@ -84,34 +141,70 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Visualizer Placeholder / Stress Info Card */}
             <Card className="border-2 overflow-hidden">
                <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Activity className="h-5 w-5 text-primary" />
-                  Bio-electrical Signal Monitoring
+                  Live Bio-electrical Signal Visualization
                 </CardTitle>
               </CardHeader>
-              <CardContent className="h-[300px] flex items-center justify-center bg-muted/10 relative">
-                {/* Visual indicator of "life" / signals */}
-                <div className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-20">
-                   <div className="w-[80%] h-[1px] bg-primary relative animate-pulse">
-                      <div className="absolute top-0 left-0 h-10 w-20 bg-primary/20 blur-xl animate-[ping_3s_infinite]"></div>
-                   </div>
-                </div>
-                <div className="text-center z-10">
-                  <p className="text-sm text-muted-foreground max-w-md">
-                    Live data is being processed from bio-electrical sensors connected via ESP32. 
-                    PlantSpeakAI translates these signals into the health status shown on the right.
-                  </p>
-                </div>
+              <CardContent className="h-[350px] p-4">
+                {loading && !history.length ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
+                    <RefreshCcw className="h-8 w-8 animate-spin text-primary opacity-20" />
+                    <p className="text-sm text-muted-foreground">Initializing signal stream...</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                      <XAxis 
+                        dataKey="time" 
+                        fontSize={10} 
+                        tickLine={false} 
+                        axisLine={false}
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <YAxis 
+                        fontSize={10} 
+                        tickLine={false} 
+                        axisLine={false}
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))', 
+                          borderColor: 'hsl(var(--border))',
+                          borderRadius: 'var(--radius)',
+                          fontSize: '12px'
+                        }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={2} 
+                        dot={false}
+                        animationDuration={1000}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="avg" 
+                        stroke="hsl(var(--secondary))" 
+                        strokeWidth={2} 
+                        strokeDasharray="5 5"
+                        dot={false}
+                        animationDuration={1000}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Right Sidebar Section */}
           <div className="lg:col-span-4">
-             {loading ? (
+             {loading && !data ? (
                <Skeleton className="h-[500px] w-full" />
              ) : (
                <StressStatusCard stressLabel={parseInt(data?.field4 || '0')} />

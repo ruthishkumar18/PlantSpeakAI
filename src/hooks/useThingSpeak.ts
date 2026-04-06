@@ -11,16 +11,19 @@ export interface PlantData {
 
 export function useThingSpeak() {
   const [data, setData] = useState<PlantData | null>(null);
+  const [history, setHistory] = useState<PlantData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await fetch(THINGSPEAK_URL);
+      // Fetch more results for history/charting
+      const response = await fetch(`${THINGSPEAK_URL.split('?')[0]}.json?results=20`);
       if (!response.ok) throw new Error('Failed to fetch data');
       const json = await response.json();
       if (json.feeds && json.feeds.length > 0) {
-        setData(json.feeds[0]);
+        setData(json.feeds[json.feeds.length - 1]);
+        setHistory(json.feeds);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -35,5 +38,5 @@ export function useThingSpeak() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  return { data, loading, error, refetch: fetchData };
+  return { data, history, loading, error, refetch: fetchData };
 }
