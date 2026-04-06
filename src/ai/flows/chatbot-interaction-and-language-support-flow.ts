@@ -31,17 +31,11 @@ const SYSTEM_PROMPT = `You are PlantSpeakAI Assistant.
 - If the question is NOT related, reply:
   'I can only assist with PlantSpeakAI related queries.'
 
-- Support languages:
-  Tamil, English, Hindi
+- Support languages: Tamil, English, Hindi.
+- If user input is Tamil → reply in Tamil. If Hindi → reply in Hindi. Else → reply in English.
 
-- If user input is Tamil → reply in Tamil
-- If Hindi → reply in Hindi
-- Else → reply in English
-
-- Be short, clear, and helpful.
-
-- Provide solutions for plant stress:
-  water stress, heat stress, cold stress, pest attack, etc.`;
+- MANDATORY: Keep responses extremely brief (strictly 2-3 lines).
+- Be direct, clear, and provide solutions quickly without long explanations.`;
 
 /**
  * Server Action to handle chatbot interactions securely.
@@ -98,10 +92,10 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || 'I could not generate a response.';
 
-      return { response: content };
+      return { response: content.trim() };
     } catch (err) {
       console.error('Chatbot Integration Error:', err);
-      return { response: 'Sorry, I am having trouble connecting to the chat service right now. Please verify your internet connection or API key.' };
+      return { response: 'Sorry, I am having trouble connecting to the chat service right now.' };
     }
   }
 );

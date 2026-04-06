@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 export function ChatbotFloating() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: 'bot' | 'user'; content: string }[]>([
-    { role: 'bot', content: "👋 Hi! I'm your PlantSpeakAI Assistant. Ask me anything about your plant health, ESP32, sensors, or stress detection!" },
+    { role: 'bot', content: "👋 Hi! I'm your PlantSpeakAI Assistant. Ask me anything about your plant health or ESP32 setup!" },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,7 @@ export function ChatbotFloating() {
       const response = await chatbotInteractionAndLanguageSupport({ query });
       setMessages(prev => [...prev, { role: 'bot', content: response.response }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'bot', content: '⚠️ Unable to reach AI assistant. Please check your connection and try again.' }]);
+      setMessages(prev => [...prev, { role: 'bot', content: '⚠️ Service unavailable. Please try again later.' }]);
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ export function ChatbotFloating() {
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       {isOpen && (
-        <Card className="w-[350px] sm:w-[380px] h-[550px] flex flex-col shadow-2xl mb-4 overflow-hidden border-none rounded-[1.5rem] animate-in slide-in-from-bottom-5">
+        <Card className="w-[350px] sm:w-[380px] h-[500px] flex flex-col shadow-2xl mb-4 overflow-hidden border-none rounded-[1.5rem] animate-in slide-in-from-bottom-5">
           <CardHeader className="p-5 bg-primary text-primary-foreground flex flex-row items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -64,7 +64,7 @@ export function ChatbotFloating() {
                 <h3 className="font-black text-sm tracking-tight">PlantSpeakAI Assistant</h3>
                 <div className="flex items-center gap-1.5">
                   <div className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                  <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">Online — Ready to help</p>
+                  <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">Active</p>
                 </div>
               </div>
             </div>
@@ -95,7 +95,7 @@ export function ChatbotFloating() {
               <div className="space-y-4">
                 {messages.map((msg, i) => (
                   <div key={i} className={cn("flex gap-2 max-w-[85%]", msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto")}>
-                    <div className={cn("p-4 rounded-2xl text-[13px] font-medium shadow-sm leading-relaxed", 
+                    <div className={cn("p-3 rounded-2xl text-[13px] font-medium shadow-sm leading-snug", 
                       msg.role === 'bot' 
                         ? "bg-white text-zinc-700 rounded-tl-none border border-zinc-100" 
                         : "bg-primary text-white rounded-tr-none")}>
@@ -105,7 +105,7 @@ export function ChatbotFloating() {
                 ))}
                 {loading && (
                   <div className="flex gap-2 mr-auto max-w-[85%]">
-                    <div className="p-4 bg-white border border-zinc-100 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-1">
+                    <div className="p-3 bg-white border border-zinc-100 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-1">
                       <div className="h-1.5 w-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                       <div className="h-1.5 w-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                       <div className="h-1.5 w-1.5 bg-zinc-400 rounded-full animate-bounce"></div>
@@ -133,17 +133,14 @@ export function ChatbotFloating() {
             <div className="flex gap-2 w-full">
               <div className="flex-1 relative">
                 <Input 
-                  placeholder="Ask about your plant..." 
+                  placeholder="Type here..." 
                   value={input} 
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSend()}
                   className="rounded-full bg-zinc-50 border-zinc-100 h-10 pr-10 text-xs font-medium"
                 />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                  <Bot className="h-4 w-4 text-primary opacity-20" />
-                </div>
               </div>
-              <Button size="icon" onClick={() => handleSend()} className="rounded-full h-10 w-10 bg-primary shadow-lg hover:scale-105 transition-all">
+              <Button size="icon" onClick={() => handleSend()} className="rounded-full h-10 w-10 bg-primary shadow-lg">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
