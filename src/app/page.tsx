@@ -28,6 +28,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend
 } from 'recharts';
 
 export default function Home() {
@@ -111,7 +112,7 @@ export default function Home() {
           <div className="lg:col-span-8 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Plant Dashboard</h2>
+                <h2 className="text-2xl font-bold text-primary">Plant Dashboard</h2>
                 <p className="text-muted-foreground text-sm flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   Last update: {data ? new Date(data.created_at).toLocaleTimeString() : 'Connecting...'}
@@ -142,14 +143,14 @@ export default function Home() {
               ))}
             </div>
 
-            <Card className="border-2 overflow-hidden bg-card">
+            <Card className="border-2 overflow-hidden bg-card shadow-lg">
                <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Activity className="h-5 w-5 text-primary" />
                   Live Bio-electrical Signal Visualization
                 </CardTitle>
               </CardHeader>
-              <CardContent className="h-[400px] w-full p-4">
+              <CardContent className="h-[450px] w-full p-4">
                 {loading && !history.length ? (
                   <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
                     <RefreshCcw className="h-8 w-8 animate-spin text-primary opacity-20" />
@@ -157,21 +158,23 @@ export default function Home() {
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.1} />
                       <XAxis 
                         dataKey="time" 
-                        fontSize={10} 
+                        fontSize={11} 
                         tickLine={false} 
                         axisLine={false}
-                        tick={{ fill: 'currentColor', opacity: 0.5 }}
+                        tick={{ fill: 'currentColor', opacity: 0.7 }}
+                        dy={10}
                       />
                       <YAxis 
-                        fontSize={10} 
+                        fontSize={11} 
                         tickLine={false} 
                         axisLine={false}
-                        tick={{ fill: 'currentColor', opacity: 0.5 }}
+                        tick={{ fill: 'currentColor', opacity: 0.7 }}
                         domain={['auto', 'auto']}
+                        dx={-10}
                       />
                       <Tooltip 
                         contentStyle={{ 
@@ -179,27 +182,31 @@ export default function Home() {
                           borderColor: 'hsl(var(--border))',
                           borderRadius: 'var(--radius)',
                           fontSize: '12px',
-                          color: 'hsl(var(--card-foreground))'
+                          color: 'hsl(var(--card-foreground))',
+                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                         }}
                       />
+                      <Legend verticalAlign="top" height={36}/>
                       <Line 
+                        name="Raw Signal"
                         type="monotone" 
                         dataKey="value" 
                         stroke="hsl(var(--primary))" 
                         strokeWidth={3} 
-                        dot={{ r: 4, fill: 'hsl(var(--primary))' }}
-                        activeDot={{ r: 6 }}
-                        animationDuration={1000}
+                        dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: 'white' }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                        animationDuration={1500}
                         isAnimationActive={true}
                       />
                       <Line 
+                        name="Average Trend"
                         type="monotone" 
                         dataKey="avg" 
                         stroke="hsl(var(--secondary))" 
                         strokeWidth={2} 
                         strokeDasharray="5 5"
                         dot={false}
-                        animationDuration={1000}
+                        animationDuration={1500}
                         isAnimationActive={true}
                       />
                     </LineChart>
@@ -209,7 +216,7 @@ export default function Home() {
             </Card>
           </div>
 
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 h-full">
              {loading && !data ? (
                <Skeleton className="h-[500px] w-full" />
              ) : (
