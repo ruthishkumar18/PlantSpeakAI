@@ -17,20 +17,18 @@ import {
   BarChart3, 
   Clock,
   Download,
-  LineChart as LineChartIcon
+  LineChart as LineChartIcon,
+  ShieldAlert
 } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area
+  ResponsiveContainer
 } from 'recharts';
 import {
   ChartContainer,
@@ -99,9 +97,10 @@ export default function Home() {
     },
   };
 
+  const currentStress = data ? (STRESS_LABELS[parseInt(data.field4)] || STRESS_LABELS[0]) : null;
+
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      {/* Top Header */}
       <header className="w-full bg-primary text-primary-foreground py-3 px-6 flex items-center justify-between shadow-lg">
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
@@ -130,7 +129,6 @@ export default function Home() {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Language & Auto-Refresh */}
         <div className="flex flex-col items-center gap-6 mb-8">
           <div className="flex items-center gap-2 bg-white/50 dark:bg-zinc-800/50 p-1 rounded-full border">
             {languages.map((lang) => (
@@ -158,7 +156,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Live Sensor Data Section */}
         <section className="mb-10">
           <div className="section-header">
             <Activity className="h-4 w-4" />
@@ -185,17 +182,20 @@ export default function Home() {
               </Card>
             ))}
             
-            <Card className="dashboard-card">
+            <Card className="dashboard-card border-none shadow-sm bg-white dark:bg-zinc-900/50">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-xl bg-zinc-100">
-                    <Clock className="h-5 w-5 text-zinc-500" />
+                  <div className={cn("p-2 rounded-xl", currentStress?.color.split(' ')[1] || 'bg-zinc-100')}>
+                    <ShieldAlert className={cn("h-5 w-5", currentStress?.color.split(' ')[0] || 'text-zinc-500')} />
                   </div>
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Last Updated</span>
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">STRESS STATUS</span>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-muted-foreground tabular-nums">
-                    {data ? new Date(data.created_at).toLocaleTimeString() : '--:--:--'}
+                  <p className="text-2xl font-black tracking-tight truncate flex items-center gap-2">
+                    {currentStress ? `${currentStress.emoji} ${currentStress.label}` : 'Loading...'}
+                  </p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tabular-nums">
+                    Updated: {data ? new Date(data.created_at).toLocaleTimeString() : '--:--:--'}
                   </p>
                 </div>
               </CardContent>
@@ -203,7 +203,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Live Graph Section */}
         <section className="mb-10">
           <div className="section-header">
             <LineChartIcon className="h-4 w-4" />
@@ -262,7 +261,6 @@ export default function Home() {
           </Card>
         </section>
 
-        {/* Status & Advisor Section */}
         <section className="mb-10">
           <div className="section-header">
             <Leaf className="h-4 w-4" />
@@ -279,7 +277,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stress Reference Section */}
         <section className="mb-20">
           <div className="section-header">
             <BarChart3 className="h-4 w-4" />
