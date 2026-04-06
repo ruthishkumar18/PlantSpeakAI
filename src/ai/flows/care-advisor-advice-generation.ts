@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating actionable care advice based on detected plant stress.
- * Enforces 2-3 line responses for quick reading.
+ * Enforces strict 2-3 line responses for quick reading.
  */
 
 import { ai } from '@/ai/genkit';
@@ -61,14 +61,14 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://plantspeakai.firebaseapp.com',
-          'X-OpenRouter-Title': 'PlantSpeakAI',
+          'X-OpenRouter-Title': 'PlantSpeakAI Advisor',
         },
         body: JSON.stringify({
           model: MODEL_NAME,
           messages: [
             {
               role: 'system',
-              content: 'You are an expert botanist. Provide a concise, actionable 2-3 line recommendation for the detected plant stress. Focus on immediate steps.'
+              content: 'You are an expert botanist. Provide a concise, actionable 2 to 3 line recommendation for the detected plant stress. Focus on immediate steps.'
             },
             {
               role: 'user',

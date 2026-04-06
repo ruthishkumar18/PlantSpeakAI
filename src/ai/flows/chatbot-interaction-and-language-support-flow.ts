@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
- * Enforces strict 2-3 line responses for speed.
+ * Enforces strict 2-3 line responses for speed and specific topic focus.
  */
 
 import {ai} from '@/ai/genkit';
@@ -11,13 +11,13 @@ const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL_NAME = 'liquid/lfm-2.5-1.2b-instruct:free';
 
 const ChatbotInteractionAndLanguageSupportInputSchema = z.object({
-  query: z.string().describe('The user\'s query for the chatbot.'),
+  query: z.string().describe("The user's query for the chatbot."),
   language: z.string().optional().describe('The preferred language for the response.'),
 });
 export type ChatbotInteractionAndLanguageSupportInput = z.infer<typeof ChatbotInteractionAndLanguageSupportInputSchema>;
 
 const ChatbotInteractionAndLanguageSupportOutputSchema = z.object({
-  response: z.string().describe('The chatbot\'s response to the query.'),
+  response: z.string().describe("The chatbot's response to the query."),
 });
 export type ChatbotInteractionAndLanguageSupportOutput = z.infer<typeof ChatbotInteractionAndLanguageSupportOutputSchema>;
 
@@ -42,8 +42,8 @@ STRICT RULES:
 - Keep answers VERY SHORT: exactly 2 to 3 lines.
 - Be clear and accurate.
 - Language Rules:
-  - If user speaks Tamil or language is Tamil -> reply in Tamil
-  - If user speaks Hindi or language is Hindi -> reply in Hindi
+  - If user speaks Tamil or language context is Tamil -> reply in Tamil
+  - If user speaks Hindi or language context is Hindi -> reply in Hindi
   - Otherwise -> reply in English
 
 Context: Preferred language is {{language}}.`;

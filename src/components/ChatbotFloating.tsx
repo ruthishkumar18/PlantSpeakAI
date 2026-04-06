@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, Bot, Droplet, Leaf, Activity, Smartphone, Heart, Zap, Volume2 } from 'lucide-react';
+import { X, Send, Bot, Droplet, Leaf, Activity, Smartphone, Heart, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -48,7 +48,7 @@ export function ChatbotFloating() {
       });
       setMessages(prev => [...prev, { role: 'bot', content: response.response }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'bot', content: '⚠️ Service unavailable. Please check your key.' }]);
+      setMessages(prev => [...prev, { role: 'bot', content: '⚠️ Service unavailable. Please check your network.' }]);
     } finally {
       setLoading(false);
     }
