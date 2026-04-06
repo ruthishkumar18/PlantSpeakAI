@@ -1,10 +1,7 @@
 'use server';
 /**
  * @fileOverview A secure multi-language chatbot assistant for PlantSpeakAI using OpenRouter.
- *
- * - chatbotInteractionAndLanguageSupport - A server-side function that handles chatbot interactions.
- * - ChatbotInteractionAndLanguageSupportInput - The input type for the chatbot function.
- * - ChatbotInteractionAndLanguageSupportOutput - The return type for the chatbot function.
+ * Enforces strict 2-3 line responses for speed.
  */
 
 import {ai} from '@/ai/genkit';
@@ -41,15 +38,13 @@ Answer ONLY questions related to:
 If the question is NOT related to the above topics, reply:
 "I can only assist with PlantSpeakAI related queries."
 
-Keep answers:
-- Short
-- Clear
-- Accurate
-
-Language Rules:
-- If user speaks Tamil or the preferred language is Tamil → reply in Tamil
-- If user speaks Hindi or the preferred language is Hindi → reply in Hindi
-- Otherwise → reply in English
+STRICT RULES:
+- Keep answers VERY SHORT: exactly 2 to 3 lines.
+- Be clear and accurate.
+- Language Rules:
+  - If user speaks Tamil or language is Tamil -> reply in Tamil
+  - If user speaks Hindi or language is Hindi -> reply in Hindi
+  - Otherwise -> reply in English
 
 Context: Preferred language is {{language}}.`;
 

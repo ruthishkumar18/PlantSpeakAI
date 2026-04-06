@@ -7,7 +7,8 @@ import { STRESS_LABELS } from '@/lib/constants';
 import { careAdvisorAdviceGeneration } from '@/ai/flows/care-advisor-advice-generation';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Bot, CheckCircle2, Info } from 'lucide-react';
+import { Bot, CheckCircle2, Volume2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface StressStatusCardProps {
   stressLabel: number;
@@ -42,6 +43,14 @@ export function StressStatusCard({ stressLabel }: StressStatusCardProps) {
     }
   }, [stressLabel, status.label, status.advice, toast]);
 
+  const speak = () => {
+    if (!window.speechSynthesis || !aiAdvice) return;
+    const utterance = new SpeechSynthesisUtterance(aiAdvice);
+    utterance.lang = 'en-US';
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
   const checklist = [
     { label: "Check environmental sensors", done: true },
     { label: "Verify soil moisture levels", done: true },
@@ -69,27 +78,39 @@ export function StressStatusCard({ stressLabel }: StressStatusCardProps) {
       {/* AI Care Advisor */}
       <Card className="dashboard-card border-2 border-primary/5 bg-white">
         <CardContent className="p-8 space-y-8">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center">
-              <Bot className="h-5 w-5 text-primary" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Bot className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-primary uppercase tracking-widest">AI Care Advisor</h3>
+                <p className="text-[10px] text-muted-foreground font-bold">Quick real-time advice</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-black text-primary uppercase tracking-widest">AI Care Advisor</h3>
-              <p className="text-[10px] text-muted-foreground font-bold">Personalized plant recommendations</p>
-            </div>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full h-8 w-8 text-primary" 
+              onClick={speak}
+              disabled={loading || !aiAdvice}
+            >
+              <Volume2 className="h-4 w-4" />
+            </Button>
           </div>
 
           <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10 relative">
             <div className="flex gap-3">
               <status.icon className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-              <div className="space-y-1">
+              <div className="space-y-1 w-full">
                 {loading ? (
                   <div className="space-y-2 animate-pulse">
                     <div className="h-2 bg-primary/20 rounded w-full" />
                     <div className="h-2 bg-primary/20 rounded w-4/5" />
+                    <div className="h-2 bg-primary/20 rounded w-3/4" />
                   </div>
                 ) : (
-                  <p className="text-xs font-bold leading-relaxed text-zinc-700">
+                  <p className="text-xs font-bold leading-relaxed text-zinc-700 whitespace-pre-line">
                     {aiAdvice || status.advice}
                   </p>
                 )}

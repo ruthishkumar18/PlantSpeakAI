@@ -1,8 +1,7 @@
-
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, Bot, Droplet, Leaf, Activity, Smartphone, Heart, Zap } from 'lucide-react';
+import { X, Send, Bot, Droplet, Leaf, Activity, Smartphone, Heart, Zap, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -55,13 +54,23 @@ export function ChatbotFloating() {
     }
   };
 
+  const speak = (text: string) => {
+    if (!window.speechSynthesis) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    if (activeLang === 'தமிழ்') utterance.lang = 'ta-IN';
+    else if (activeLang === 'हिंदी') utterance.lang = 'hi-IN';
+    else utterance.lang = 'en-US';
+    
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
   const suggestions = [
     { label: "Stress types", icon: Activity },
     { label: "Watering", icon: Droplet },
     { label: "ESP32", icon: Smartphone },
-    { label: "ThingSpeak", icon: Leaf },
     { label: "Plant Care", icon: Heart },
-    { label: "Sensor Tips", icon: Zap },
   ];
 
   const getRecognitionLang = () => {
@@ -113,12 +122,20 @@ export function ChatbotFloating() {
             <ScrollArea className="h-full p-4" viewportRef={scrollRef}>
               <div className="space-y-4">
                 {messages.map((msg, i) => (
-                  <div key={i} className={cn("flex gap-2 max-w-[85%]", msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto")}>
-                    <div className={cn("p-3 rounded-2xl text-[13px] font-medium shadow-sm leading-snug", 
+                  <div key={i} className={cn("flex gap-2 max-w-[85%] group", msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto")}>
+                    <div className={cn("relative p-3 rounded-2xl text-[13px] font-medium shadow-sm leading-snug", 
                       msg.role === 'bot' 
                         ? "bg-white text-zinc-700 rounded-tl-none border border-zinc-100" 
                         : "bg-primary text-white rounded-tr-none")}>
                       {msg.content}
+                      {msg.role === 'bot' && (
+                        <button 
+                          onClick={() => speak(msg.content)}
+                          className="absolute -right-8 top-1 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white shadow-sm border border-zinc-100 rounded-lg text-primary"
+                        >
+                          <Volume2 className="h-3 w-3" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
