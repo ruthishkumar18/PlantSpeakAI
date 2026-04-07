@@ -80,8 +80,6 @@ const chatbotInteractionAndLanguageSupportFlow = ai.defineFlow(
             { role: 'system', content: resolvedSystemPrompt },
             { role: 'user', content: input.query }
           ],
-          max_tokens: 250,
-          temperature: 0.7,
           reasoning: { enabled: true }
         })
       });

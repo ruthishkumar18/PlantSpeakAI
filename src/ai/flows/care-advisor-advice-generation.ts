@@ -74,8 +74,6 @@ const careAdvisorAdviceGenerationFlow = ai.defineFlow(
               content: `Plant Stress detected: ${stressTypeDescription}`
             }
           ],
-          max_tokens: 250,
-          temperature: 0.7,
           reasoning: { enabled: true }
         })
       });
